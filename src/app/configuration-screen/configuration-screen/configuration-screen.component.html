@@ -1,0 +1,43 @@
+<div class="container">
+  <h1>HUNT THE WUMPUS</h1>
+  <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
+    <div>
+      <label class="large-lbl"> Cantidad de Filas: </label>
+      <input
+        #rows
+        type="number"
+        min="4"
+        max="50"
+        formControlName="colsX"
+        required
+      />
+    </div>
+    <div>
+      <label class="large-lbl"> Cantidad de Columnas: </label>
+      <input
+        #columns
+        type="number"
+        min="4"
+        max="50"
+        formControlName="colsY"
+        required
+      />
+    </div>
+    <div>
+      <label class="large-lbl"> Cantidad de Pozos: </label>
+      <input
+        type="number"
+        min="1"
+        [max]="(rows.value * columns.value) / 2"
+        formControlName="pits"
+        required
+      />
+    </div>
+    <div>
+      <label class="large-lbl"> Cantidad de Flechas: </label>
+      <input type="number" min="0" max="50" formControlName="arrows" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary" [disabled]="!settingsForm.valid">JUGAR</button>
+  </form>
+</div>
