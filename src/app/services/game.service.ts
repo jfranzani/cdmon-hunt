@@ -40,6 +40,32 @@ export class GameService {
     return board;
   }
 
+  getEscapeRandomNumber(colsAmunt: number, rowsAmount: number): number {
+    let totalRows = (colsAmunt - 1) * 2 + (rowsAmount - 1) * 2 - 4;
+    return Math.floor(Math.random() * totalRows);
+  }
+
+  addEscapeCell(cells: Cell[][], escapeIndex: number) {
+    let wallIndex = 0;
+    for (let i = 0; i < cells.length; i++) {
+      for (let j = 0; j < cells[i].length; j++) {
+        let cube = cells[i][j];
+        if (this.isWall(cube.wall)) {
+          if (wallIndex === escapeIndex) {
+            cube.isEscape = true;
+            return;
+          } else {
+            wallIndex++;
+          }
+        }
+      }
+    }
+  }
+
+  isWall(wall: Wall) {
+    return wall.top || wall.bottom || wall.left || wall.right;
+  }
+
   /**
    * Create the walls of the board
    * @param totalColumns
@@ -59,7 +85,7 @@ export class GameService {
       wall.top = true;
     }
     // Bottom Wall
-    if (indexRow === totalRows) {
+    if (indexRow === totalRows - 1) {
       wall.bottom = true;
     }
     // Left Wall
@@ -67,19 +93,10 @@ export class GameService {
       wall.left = true;
     }
     // Right Wall
-    if (indexCol === totalColumns) {
+    if (indexCol === totalColumns - 1) {
       wall.right = true;
     }
     return wall;
-  }
-
-  addEscapeCell(cells: Cell[][]) {
-    for (var i = 0; i < cells.length; i++) {
-      var cube = cells[i];
-      for (var j = 0; j < cube.length; j++) {
-        cells[i][j] = cube[j];
-      }
-    }
   }
 
   addPits(amountOfPits) {}

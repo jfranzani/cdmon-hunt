@@ -1,10 +1,11 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BoardModule } from './board/board.module';
-import { CellModule } from './cell/cell.module';
+import { CellComponent } from './cell/cell.component';
+import { BoardComponent } from './board/board.component';
 
 @NgModule({
-  declarations: [],
-  imports: [CommonModule, BoardModule, CellModule],
+  declarations: [CellComponent, BoardComponent],
+  imports: [CommonModule],
+  exports: [CellComponent, BoardComponent],
 })
 export class GameModule {}

@@ -27,6 +27,12 @@ export class BoardComponent implements OnInit {
 
   createBoardMatrix() {
     this.gameSettings = this.storageService.getGameSettings();
-    console.log(this.gameservice.createEmptyBoard(this.gameSettings).cells);
+    this.board = this.gameservice.createEmptyBoard(this.gameSettings);
+    const escapeIndex = this.gameservice.getEscapeRandomNumber(
+      this.gameSettings.cellsY,
+      this.gameSettings.cellsX
+    );
+    this.gameservice.addEscapeCell(this.board.cells, escapeIndex);
+    console.log(this.board.cells);
   }
 }
