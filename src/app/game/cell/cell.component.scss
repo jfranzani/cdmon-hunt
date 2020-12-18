@@ -1,3 +1,7 @@
+$wallColor: burlywood;
+$escapeColor: red;
+$wallBorder: 10px;
+
 .cell-block {
   border: 1px black solid;
   width: 110px;
@@ -6,15 +10,27 @@
 
 .wall {
   &-left {
-    border-left: 10px solid burlywood;
+    border-left: $wallBorder solid $wallColor;
+    &-escape {
+      border-left: $wallBorder dashed $escapeColor;
+    }
   }
   &-right {
-    border-right: 10px solid burlywood;
+    border-right: $wallBorder solid $wallColor;
+    &-escape {
+      border-right: $wallBorder dashed $escapeColor;
+    }
   }
   &-top {
-    border-top: 10px solid burlywood;
+    border-top: $wallBorder solid $wallColor;
+    &-escape {
+      border-top: $wallBorder dashed $escapeColor;
+    }
   }
   &-bottom {
-    border-bottom: 10px solid burlywood;
+    border-bottom: $wallBorder solid $wallColor;
+    &-escape {
+      border-bottom: $wallBorder dashed $escapeColor;
+    }
   }
 }

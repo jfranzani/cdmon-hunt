@@ -20,27 +20,30 @@ export class CellComponent implements AfterViewInit {
   constructor() {}
 
   ngAfterViewInit(): void {
-    let wallClass = this.getWallClasses(this.cell.wall);
+    let wallClass = this.getWallClasses(this.cell);
     let nativeEl = this.cellElement.nativeElement;
     if (wallClass) {
       nativeEl.className = `${nativeEl.className}${wallClass}`;
     }
   }
 
-  getWallClasses(wall: Wall) {
-    let classStyles = '';
-    if (wall.bottom) {
-      classStyles += ' wall-bottom';
+  getWallClasses(cell: Cell): string {
+    let wallStyle = '';
+    if (cell.wall.bottom) {
+      wallStyle += ' wall-bottom';
     }
-    if (wall.right) {
-      classStyles += ' wall-right';
+    if (cell.wall.right) {
+      wallStyle += ' wall-right';
     }
-    if (wall.top) {
-      classStyles += ' wall-top';
+    if (cell.wall.top) {
+      wallStyle += ' wall-top';
     }
-    if (wall.left) {
-      classStyles += ' wall-left';
+    if (cell.wall.left) {
+      wallStyle += ' wall-left';
     }
-    return classStyles;
+    if (cell.isEscape) {
+      wallStyle = `${wallStyle} ${wallStyle}-escape`;
+    }
+    return wallStyle;
   }
 }
