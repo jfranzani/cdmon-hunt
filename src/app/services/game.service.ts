@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import {
   findSpecificCell,
+  getAvailableCells,
   getEscapeRandomNumber,
-  isCellAlreadyTaken,
 } from '../core/helpers/helper-functions';
 import { GameConfiguration } from '../core/models/configuration';
 import { Board, Cell, SearcheableCellAttr, Wall } from '../core/models/game';
@@ -104,9 +104,8 @@ export class GameService {
    * @param amountOfPits
    */
   addPits(cells: Cell[][], amountOfPits: number) {
-    for (let i: number = 0; i < cells.length; i++) {
-      cells[i] = [];
-      for (let j: number = 0; j < cells[i].length; j++) {}
+    for (let i = 0; i < amountOfPits; i++) {
+      this.addPit(cells);
     }
   }
 
@@ -115,7 +114,7 @@ export class GameService {
    * @param cells
    */
   addGold(cells: Cell[][]): void {
-    let availableCells = this.getAvailableCells(cells);
+    let availableCells = getAvailableCells(cells);
     console.log('availableCells:', availableCells);
     let goldNumber = Math.floor(Math.random() * availableCells.length);
     console.log('GOLD NUMBER: ', goldNumber);
@@ -130,7 +129,7 @@ export class GameService {
    * @param cells
    */
   addWumpus(cells: Cell[][]): void {
-    let availableCells = this.getAvailableCells(cells);
+    let availableCells = getAvailableCells(cells);
     console.log('availableCells:', availableCells);
     let wumpusNumber = Math.floor(Math.random() * availableCells.length);
     console.log('WUMPUS NUMBER: ', wumpusNumber);
@@ -141,26 +140,21 @@ export class GameService {
   }
 
   /**
-   * Get all the cells that can be occupied on the board
+   * Add a Pit
    * @param cells
    */
-  getAvailableCells(cells: Cell[][]): Cell[] {
-    let availableCells = [];
-    for (let i: number = 0; i < cells.length; i++) {
-      for (let j: number = 0; j < cells[i].length; j++) {
-        let cube = cells[i][j];
-        if (!isCellAlreadyTaken(cube)) {
-          availableCells.push(cube);
-        }
-      }
-    }
-    return availableCells;
+  addPit(cells: Cell[][]): void {
+    let availableCells = getAvailableCells(cells);
+    let pitNumber = Math.floor(Math.random() * availableCells.length);
+    let selectedCell = availableCells.find(
+      (cell, index) => index === pitNumber
+    );
+    selectedCell.isPit = true;
   }
 
   createCleanPathToGold(cells: Cell[][]) {
     let escapeCell = findSpecificCell(cells, SearcheableCellAttr.isEscape);
     let path = this.pathCreatorService.findPath(cells, escapeCell);
-    console.log('PATH: ', path);
     for (let coordinate of path.slice(0, path.length - 1)) {
       let cube = cells[coordinate.Y][coordinate.X];
       cube.isClearPath = true;

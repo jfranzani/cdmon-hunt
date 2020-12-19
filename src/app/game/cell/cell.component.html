@@ -1,11 +1,13 @@
-<div
-  class="cell-block"
-  #cube
-  [ngClass]="{
-    'has-gold': cell.hasGold,
-    'is-wumpus': cell.isWumpus,
-    'is-clear-path': cell.isClearPath
-  }"
->
-  {{ cell?.number }}
+<div class="cell-block" #cube>
+  <div
+    class="inner-cell"
+    [ngClass]="{
+      'has-gold': cell.hasGold,
+      'is-wumpus': cell.isWumpus,
+      'is-clear-path': cell.isClearPath,
+      'is-pit': cell.isPit
+    }"
+  >
+    {{ cell?.number }}
+  </div>
 </div>

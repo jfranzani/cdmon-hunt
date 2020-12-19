@@ -33,6 +33,7 @@ export class BoardComponent implements OnInit {
     this.gameservice.addGold(cells);
     this.gameservice.addWumpus(cells);
     this.gameservice.createCleanPathToGold(cells);
+    this.gameservice.addPits(cells, this.gameSettings.pits);
     console.log(cells);
   }
 }

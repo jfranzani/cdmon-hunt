@@ -3,7 +3,15 @@ $escapeColor: red;
 $goldColor: gold;
 $wumpusColor: green;
 $clearPathColor: grey;
+$pitColor: black;
 $wallBorder: 10px;
+
+.inner-cell {
+  height: 90%;
+  width: 90%;
+  margin-left: 5px;
+  margin-top: 5px;
+}
 
 .cell-block {
   border: 1px black solid;
@@ -17,6 +25,12 @@ $wallBorder: 10px;
 
 .is-wumpus {
   background-color: $wumpusColor;
+}
+
+.is-pit {
+  background-color: $pitColor;
+
+  border-radius: 50%;
 }
 
 .is-clear-path {

@@ -22,7 +22,13 @@ export function getEscapeRandomNumber(
  * Has gold
  */
 export function isCellAlreadyTaken(cell: Cell): boolean {
-  return cell.isEscape || cell.isPit || cell.hasGold || cell.isWumpus;
+  return (
+    cell.isEscape ||
+    cell.isPit ||
+    cell.hasGold ||
+    cell.isWumpus ||
+    cell.isClearPath
+  );
 }
 
 /**
@@ -43,4 +49,21 @@ export function findSpecificCell(
     }
   }
   return null;
+}
+
+/**
+ * Get all the cells that can be occupied on the board
+ * @param cells
+ */
+export function getAvailableCells(cells: Cell[][]): Cell[] {
+  let availableCells = [];
+  for (let i: number = 0; i < cells.length; i++) {
+    for (let j: number = 0; j < cells[i].length; j++) {
+      let cube = cells[i][j];
+      if (!isCellAlreadyTaken(cube)) {
+        availableCells.push(cube);
+      }
+    }
+  }
+  return availableCells;
 }
