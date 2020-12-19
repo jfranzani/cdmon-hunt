@@ -10,6 +10,17 @@
       'has-stink': cell.hasStink
     }"
   >
-    {{ cell?.number }}
+    <div *ngIf="cell.isWumpus">
+      <img class="cell-img cell-img-wumpus" src="assets/images/wumpus.png" />
+    </div>
+    <div *ngIf="cell.hasBreeze">
+      <img class="cell-img cell-img-breeze" src="assets/images/breeze.jpg" />
+    </div>
+    <div *ngIf="cell.hasGold">
+      <img class="cell-img cell-img-gold" src="assets/images/gold.jpg" />
+    </div>
+    <div *ngIf="cell.hasStink">
+      <img class="cell-img cell-img-stink" src="assets/images/stink.png" />
+    </div>
   </div>
 </div>

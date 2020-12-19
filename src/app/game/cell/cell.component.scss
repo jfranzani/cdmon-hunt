@@ -8,11 +8,40 @@ $wallBorder: 10px;
 $breezeColor: #109dfa;
 $stinkColor: brown;
 
+.cell-img {
+  width: 100px;
+  height: 100px;
+  &-wumpus {
+    width: 70%;
+    height: 91%;
+    margin-left: 10px;
+  }
+  &-breeze {
+    width: 80px;
+    height: 80px;
+    margin-left: 5px;
+    margin-top: 5px;
+  }
+  &-gold {
+    width: 80px;
+    height: 80px;
+    margin-left: 5px;
+    margin-top: 5px;
+  }
+  &-stink {
+    width: 80px;
+    height: 80px;
+    margin-left: 5px;
+    margin-top: 5px;
+  }
+}
+
 .inner-cell {
   height: 90%;
   width: 90%;
   margin-left: 5px;
   margin-top: 5px;
+  overflow: hidden;
 }
 
 .cell-block {
@@ -21,21 +50,21 @@ $stinkColor: brown;
   height: 110px;
 }
 
-.has-breeze {
-  background-color: $breezeColor;
-}
+// .has-breeze {
+//   background-color: $breezeColor;
+// }
 
-.has-stink {
-  background-color: $stinkColor;
-}
+// .has-stink {
+//   background-color: $stinkColor;
+// }
 
-.has-gold {
-  background-color: $goldColor;
-}
+// .has-gold {
+//   background-color: $goldColor;
+// }
 
-.is-wumpus {
-  background-color: $wumpusColor;
-}
+// .is-wumpus {
+//   background-color: $wumpusColor;
+// }
 
 .is-pit {
   background-color: $pitColor;
