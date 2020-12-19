@@ -1,23 +1,18 @@
-import { PathLocationStrategy } from '@angular/common';
 import { Injectable } from '@angular/core';
-import { GameConfiguration } from '../core/models/configuration';
 import {
-  AxisDirection,
-  Board,
-  BoardCoordenate,
-  Cell,
-  LocationPath,
-  PathFinderStatus,
-  SearchebleCellAttr,
-  Wall,
-} from '../core/models/game';
-import { SeedService } from './seed.service';
+  findSpecificCell,
+  getEscapeRandomNumber,
+  isCellAlreadyTaken,
+} from '../core/helpers/helper-functions';
+import { GameConfiguration } from '../core/models/configuration';
+import { Board, Cell, SearcheableCellAttr, Wall } from '../core/models/game';
+import { PathCreatorService } from './path-creator.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GameService {
-  constructor(private seedService: SeedService) {}
+  constructor(private pathCreatorService: PathCreatorService) {}
 
   getDefaultGameSettings(): GameConfiguration {
     return {
@@ -48,10 +43,7 @@ export class GameService {
   }
 
   addEscapeCell(cells: Cell[][]) {
-    let escapeIndex = this.seedService.getEscapeRandomNumber(
-      cells.length,
-      cells[0].length
-    );
+    let escapeIndex = getEscapeRandomNumber(cells.length, cells[0].length);
     console.log('ESCAPE INDEX ', escapeIndex);
     let wallIndex = 0;
     for (let i = 0; i < cells.length; i++) {
@@ -157,7 +149,7 @@ export class GameService {
     for (let i: number = 0; i < cells.length; i++) {
       for (let j: number = 0; j < cells[i].length; j++) {
         let cube = cells[i][j];
-        if (!this.isCellAlreadyTaken(cube)) {
+        if (!isCellAlreadyTaken(cube)) {
           availableCells.push(cube);
         }
       }
@@ -165,189 +157,13 @@ export class GameService {
     return availableCells;
   }
 
-  createaPathToGold(cells: Cell[][]) {
-    let gold;
-  }
-
-  /**
-   * Cell will be considered taken when one of
-   * the following statements it is true:
-   * Has the Wumpus
-   * Has a Pit
-   * Has the escapeCell
-   * Has gold
-   */
-  isCellAlreadyTaken(cell: Cell): boolean {
-    return cell.isEscape || cell.isPit || cell.hasGold || cell.isWumpus;
-  }
-
   createCleanPathToGold(cells: Cell[][]) {
-    let escapeCell = this.findSpecificCell(cells, SearchebleCellAttr.isEscape);
-    let path = this.findPath(cells, escapeCell);
+    let escapeCell = findSpecificCell(cells, SearcheableCellAttr.isEscape);
+    let path = this.pathCreatorService.findPath(cells, escapeCell);
     console.log('PATH: ', path);
-  }
-
-  findSpecificCell(board: Cell[][], attr): Cell {
-    for (let i: number = 0; i < board.length; i++) {
-      for (let j: number = 0; j < board[i].length; j++) {
-        let cube = board[i][j];
-        if (cube[attr]) {
-          return cube;
-        }
-      }
+    for (let coordinate of path.slice(0, path.length - 1)) {
+      let cube = cells[coordinate.Y][coordinate.X];
+      cube.isClearPath = true;
     }
-    return null;
-  }
-
-  findPath(board: Cell[][], escapeCell: Cell) {
-    let distanceFromTop = escapeCell.coordinateY;
-    let distanceFromLeft = escapeCell.coordinateX;
-
-    // Each "location" will store its coordinates
-    // and the shortest path required to arrive there
-    let location: LocationPath = {
-      distanceFromTop: distanceFromTop,
-      distanceFromLeft: distanceFromLeft,
-      path: [],
-      status: PathFinderStatus.Start,
-    };
-
-    // Initialize the queue with the start location already inside
-    let queue = [location];
-
-    // Loop through the board searching for the gold
-    while (queue.length > 0) {
-      // Take the first location off the queue
-      let currentLocation = queue.shift();
-
-      let newLocation;
-      // Explore North
-      newLocation = this.exploreInDirection(
-        currentLocation,
-        AxisDirection.North,
-        board
-      );
-      if (newLocation.status === PathFinderStatus.Gold) {
-        return newLocation.path;
-      }
-      this.checkPushLocationToQueue(newLocation, queue);
-
-      // Explore East
-      newLocation = this.exploreInDirection(
-        currentLocation,
-        AxisDirection.East,
-        board
-      );
-      if (newLocation.status === PathFinderStatus.Gold) {
-        return newLocation.path;
-      }
-      this.checkPushLocationToQueue(newLocation, queue);
-
-      // Explore South
-      newLocation = this.exploreInDirection(
-        currentLocation,
-        AxisDirection.South,
-        board
-      );
-      if (newLocation.status === PathFinderStatus.Gold) {
-        return newLocation.path;
-      }
-      this.checkPushLocationToQueue(newLocation, queue);
-
-      // Explore West
-      newLocation = this.exploreInDirection(
-        currentLocation,
-        AxisDirection.West,
-        board
-      );
-      if (newLocation.status === PathFinderStatus.Gold) {
-        return newLocation.path;
-      }
-      this.checkPushLocationToQueue(newLocation, queue);
-    }
-
-    // No valid path found
-    return false;
-  }
-
-  checkPushLocationToQueue(newLocation: LocationPath, queue: LocationPath[]) {
-    if (newLocation.status === PathFinderStatus.Valid) {
-      queue.push(newLocation);
-    }
-  }
-
-  // This function will check a location's status
-  // (a location is "valid" if it is on the board, is not an "obstacle",
-  // and has not yet been visited by our algorithm)
-  locationStatus(location: LocationPath, board: Cell[][]): PathFinderStatus {
-    let boardSize = board.length;
-    let coordY = location.distanceFromTop;
-    let coordX = location.distanceFromLeft;
-    // Out of the limits of the board
-    if (
-      location.distanceFromLeft < 0 ||
-      location.distanceFromLeft >= boardSize ||
-      location.distanceFromTop < 0 ||
-      location.distanceFromTop >= boardSize
-    ) {
-      return PathFinderStatus.Invalid;
-    }
-
-    if (board[coordY][coordX].hasGold) {
-      return PathFinderStatus.Gold;
-    }
-
-    if (this.isCellAlreadyTaken(board[coordY][coordX])) {
-      // location is either an obstacle or has been visited
-      return PathFinderStatus.Blocked;
-    }
-
-    return PathFinderStatus.Valid;
-  }
-
-  // Explores the grid from the given location in the given
-  // direction
-  exploreInDirection(
-    currentLocation: LocationPath,
-    direction: AxisDirection,
-    board: Cell[][]
-  ) {
-    let newPath = currentLocation.path.slice();
-    let dft = currentLocation.distanceFromTop;
-    let dfl = currentLocation.distanceFromLeft;
-
-    switch (direction) {
-      case AxisDirection.North:
-        dft -= 1;
-        break;
-      case AxisDirection.East:
-        dfl += 1;
-        break;
-      case AxisDirection.South:
-        dft += 1;
-        break;
-      case AxisDirection.West:
-        dfl -= 1;
-        break;
-    }
-
-    newPath.push({ X: dfl, Y: dft });
-
-    let newLocation = {
-      distanceFromTop: dft,
-      distanceFromLeft: dfl,
-      path: newPath,
-      status: PathFinderStatus.Unknown,
-    };
-
-    newLocation.status = this.locationStatus(newLocation, board);
-
-    // If this new location is valid, mark it as 'Visited'
-    if (newLocation.status === PathFinderStatus.Valid) {
-      board[newLocation.distanceFromTop][newLocation.distanceFromLeft].status =
-        PathFinderStatus.Valid;
-    }
-
-    return newLocation;
   }
 }

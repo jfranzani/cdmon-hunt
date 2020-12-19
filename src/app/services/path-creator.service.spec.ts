@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { SeedService } from './seed.service';
+import { PathCreatorService } from './path-creator.service';
 
-describe('SeedService', () => {
-  let service: SeedService;
+describe('PathCreatorService', () => {
+  let service: PathCreatorService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(SeedService);
+    service = TestBed.inject(PathCreatorService);
   });
 
   it('should be created', () => {

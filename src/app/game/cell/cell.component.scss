@@ -2,6 +2,7 @@ $wallColor: burlywood;
 $escapeColor: red;
 $goldColor: gold;
 $wumpusColor: green;
+$clearPathColor: grey;
 $wallBorder: 10px;
 
 .cell-block {
@@ -16,6 +17,10 @@ $wallBorder: 10px;
 
 .is-wumpus {
   background-color: $wumpusColor;
+}
+
+.is-clear-path {
+  background-color: $clearPathColor;
 }
 
 .wall {

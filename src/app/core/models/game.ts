@@ -77,7 +77,7 @@ export interface LocationPath {
   status: PathFinderStatus;
 }
 
-export enum SearchebleCellAttr {
+export enum SearcheableCellAttr {
   isEscape = 'isEscape',
   isPit = 'isPit',
   isWumpus = 'isWumpus',
