@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { GameConfiguration } from 'src/app/core/models/configuration';
 import { Board, Cell } from 'src/app/core/models/game';
 import { GameService } from 'src/app/services/game.service';
@@ -17,7 +18,8 @@ export class BoardComponent implements OnInit {
 
   constructor(
     private storageService: StorageService,
-    private gameservice: GameService
+    private gameservice: GameService,
+    private route: Router
   ) {}
 
   ngOnInit(): void {
@@ -35,5 +37,13 @@ export class BoardComponent implements OnInit {
     this.gameservice.createCleanPathToGold(cells);
     this.gameservice.addPits(cells, this.gameSettings.pits);
     console.log(cells);
+  }
+
+  resetBoard() {
+    this.createBoardMatrix();
+  }
+
+  goBack() {
+    this.route.navigate(['']);
   }
 }

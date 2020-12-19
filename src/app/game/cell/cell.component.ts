@@ -3,10 +3,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   Input,
-  OnInit,
   ViewChild,
 } from '@angular/core';
-import { Cell, Wall } from 'src/app/core/models/game';
+import { Cell } from 'src/app/core/models/game';
 
 @Component({
   selector: 'app-cell',

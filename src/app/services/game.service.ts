@@ -1,11 +1,23 @@
 import { Injectable } from '@angular/core';
 import {
   findSpecificCell,
+  getAdjacentCell,
+  getAdjancentCoordinateBasedOnDirection,
   getAvailableCells,
   getEscapeRandomNumber,
+  isCellAlreadyTaken,
+  isCoordinateInvalid,
 } from '../core/helpers/helper-functions';
 import { GameConfiguration } from '../core/models/configuration';
-import { Board, Cell, SearcheableCellAttr, Wall } from '../core/models/game';
+import {
+  AxisDirection,
+  Board,
+  BoardCoordinate,
+  Cell,
+  CellAttributeToActive,
+  SearcheableCellAttr,
+  Wall,
+} from '../core/models/game';
 import { PathCreatorService } from './path-creator.service';
 
 @Injectable({
@@ -107,6 +119,7 @@ export class GameService {
     for (let i = 0; i < amountOfPits; i++) {
       this.addPit(cells);
     }
+    this.addBreezeToPits(cells);
   }
 
   /**
@@ -130,13 +143,16 @@ export class GameService {
    */
   addWumpus(cells: Cell[][]): void {
     let availableCells = getAvailableCells(cells);
-    console.log('availableCells:', availableCells);
     let wumpusNumber = Math.floor(Math.random() * availableCells.length);
-    console.log('WUMPUS NUMBER: ', wumpusNumber);
     let selectedCell = availableCells.find(
       (cell, index) => index === wumpusNumber
     );
     selectedCell.isWumpus = true;
+    this.activeAdjacentProps(
+      cells,
+      selectedCell,
+      CellAttributeToActive.hasStink
+    );
   }
 
   /**
@@ -158,6 +174,46 @@ export class GameService {
     for (let coordinate of path.slice(0, path.length - 1)) {
       let cube = cells[coordinate.Y][coordinate.X];
       cube.isClearPath = true;
+    }
+  }
+
+  addBreezeToPits(cells: Cell[][]) {
+    let availableCells = [];
+    for (let i: number = 0; i < cells.length; i++) {
+      for (let j: number = 0; j < cells[i].length; j++) {
+        let currentCell = cells[i][j];
+        if (currentCell.isPit) {
+          this.activeAdjacentProps(
+            cells,
+            currentCell,
+            CellAttributeToActive.hasBreeze
+          );
+        }
+      }
+    }
+    return availableCells;
+  }
+
+  activeAdjacentProps(
+    cells: Cell[][],
+    selectedCell: Cell,
+    attributeToActivate: CellAttributeToActive
+  ) {
+    let northCell = getAdjacentCell(cells, selectedCell, AxisDirection.North);
+    let southCell = getAdjacentCell(cells, selectedCell, AxisDirection.South);
+    let eastCell = getAdjacentCell(cells, selectedCell, AxisDirection.East);
+    let westCell = getAdjacentCell(cells, selectedCell, AxisDirection.West);
+    if (northCell && !isCellAlreadyTaken(northCell)) {
+      northCell[attributeToActivate] = true;
+    }
+    if (southCell && !isCellAlreadyTaken(southCell)) {
+      southCell[attributeToActivate] = true;
+    }
+    if (eastCell && !isCellAlreadyTaken(eastCell)) {
+      eastCell[attributeToActivate] = true;
+    }
+    if (westCell && !isCellAlreadyTaken(westCell)) {
+      westCell[attributeToActivate] = true;
     }
   }
 }

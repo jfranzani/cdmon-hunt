@@ -1,4 +1,9 @@
-import { Cell, SearcheableCellAttr } from '../models/game';
+import {
+  AxisDirection,
+  BoardCoordinate,
+  Cell,
+  SearcheableCellAttr,
+} from '../models/game';
 
 /**
  * Get the random number to locate the escape cell
@@ -66,4 +71,76 @@ export function getAvailableCells(cells: Cell[][]): Cell[] {
     }
   }
   return availableCells;
+}
+
+/**
+ * Get the coordinates for an adjacent cell given a specifc coordinate
+ * @param direction
+ * @param coordinate
+ */
+export function getAdjancentCoordinateBasedOnDirection(
+  direction: AxisDirection,
+  coordinate: BoardCoordinate
+): BoardCoordinate {
+  let newCoordinate: BoardCoordinate = { ...coordinate };
+  switch (direction) {
+    case AxisDirection.North:
+      newCoordinate.Y -= 1;
+      break;
+    case AxisDirection.East:
+      newCoordinate.X += 1;
+      break;
+    case AxisDirection.South:
+      newCoordinate.Y += 1;
+      break;
+    case AxisDirection.West:
+      newCoordinate.X -= 1;
+      break;
+  }
+  return newCoordinate;
+}
+
+/**
+ * Check the current coordinates are valid
+ * @param coordinateX
+ * @param coordinateY
+ * @param boardSize
+ */
+export function isCoordinateInvalid(
+  coordinateX: number,
+  coordinateY: number,
+  boardSize: number
+) {
+  return (
+    coordinateX < 0 ||
+    coordinateX >= boardSize ||
+    coordinateY < 0 ||
+    coordinateY >= boardSize
+  );
+}
+
+/**
+ * It will return an adjacent cell given a specific cell and direction
+ * @param cells
+ * @param currentCell
+ * @param direction
+ */
+export function getAdjacentCell(
+  cells: Cell[][],
+  currentCell: Cell,
+  direction: AxisDirection
+): Cell {
+  let coordinate: BoardCoordinate = {
+    X: currentCell.coordinateX,
+    Y: currentCell.coordinateY,
+  };
+  let newCoordinate = getAdjancentCoordinateBasedOnDirection(
+    direction,
+    coordinate
+  );
+  if (!isCoordinateInvalid(newCoordinate.X, newCoordinate.Y, cells.length)) {
+    return cells[newCoordinate.Y][newCoordinate.X];
+  } else {
+    return null;
+  }
 }

@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
-import { isCellAlreadyTaken } from '../core/helpers/helper-functions';
+import {
+  isCellAlreadyTaken,
+  isCoordinateInvalid,
+} from '../core/helpers/helper-functions';
 import {
   AxisDirection,
-  BoardCoordenate,
+  BoardCoordinate,
   Cell,
   LocationPath,
   PathFinderStatus,
@@ -14,7 +17,7 @@ import {
 export class PathCreatorService {
   constructor() {}
 
-  findPath(board: Cell[][], escapeCell: Cell): BoardCoordenate[] {
+  findPath(board: Cell[][], escapeCell: Cell): BoardCoordinate[] {
     let distanceFromTop = escapeCell.coordinateY;
     let distanceFromLeft = escapeCell.coordinateX;
 
@@ -98,13 +101,9 @@ export class PathCreatorService {
     let boardSize = board.length;
     let coordY = location.distanceFromTop;
     let coordX = location.distanceFromLeft;
+
     // Out of the limits of the board
-    if (
-      location.distanceFromLeft < 0 ||
-      location.distanceFromLeft >= boardSize ||
-      location.distanceFromTop < 0 ||
-      location.distanceFromTop >= boardSize
-    ) {
+    if (isCoordinateInvalid(coordX, coordY, boardSize)) {
       return PathFinderStatus.Invalid;
     }
 

@@ -1,5 +1,5 @@
 <div class="container">
-  <h1>BOARD</h1>
+  <h1>HUNT THE WUMPUS!</h1>
   <div
     *ngFor="let row of board.cells; let even = even; let odd = odd"
     class="cell-row"
@@ -8,5 +8,13 @@
     <div class="field" *ngFor="let field of row">
       <app-cell [cell]="field"></app-cell>
     </div>
+  </div>
+  <div class="buttons">
+    <button (click)="resetBoard()" class="btn btn-primary">
+      Refresh Board
+    </button>
+    <button (click)="goBack()" class="btn btn-secondary">
+      Go back to settings
+    </button>
   </div>
 </div>

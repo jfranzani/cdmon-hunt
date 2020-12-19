@@ -26,6 +26,8 @@ export class Cell {
   coordinateX: number;
   coordinateY: number;
   status: PathFinderStatus;
+  hasBreeze: boolean;
+  hasStink: boolean;
   constructor(
     number,
     coordinateY,
@@ -65,7 +67,7 @@ export class Wall {
   }
 }
 
-export interface BoardCoordenate {
+export interface BoardCoordinate {
   X: number;
   Y: number;
 }
@@ -73,7 +75,7 @@ export interface BoardCoordenate {
 export interface LocationPath {
   distanceFromTop: number;
   distanceFromLeft: number;
-  path: BoardCoordenate[];
+  path: BoardCoordinate[];
   status: PathFinderStatus;
 }
 
@@ -81,6 +83,11 @@ export enum SearcheableCellAttr {
   isEscape = 'isEscape',
   isPit = 'isPit',
   isWumpus = 'isWumpus',
+}
+
+export enum CellAttributeToActive {
+  hasBreeze = 'hasBreeze',
+  hasStink = 'hasStink',
 }
 
 export enum PathFinderStatus {

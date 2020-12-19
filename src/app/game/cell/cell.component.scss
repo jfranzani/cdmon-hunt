@@ -5,6 +5,8 @@ $wumpusColor: green;
 $clearPathColor: grey;
 $pitColor: black;
 $wallBorder: 10px;
+$breezeColor: #109dfa;
+$stinkColor: brown;
 
 .inner-cell {
   height: 90%;
@@ -17,6 +19,14 @@ $wallBorder: 10px;
   border: 1px black solid;
   width: 110px;
   height: 110px;
+}
+
+.has-breeze {
+  background-color: $breezeColor;
+}
+
+.has-stink {
+  background-color: $stinkColor;
 }
 
 .has-gold {
