@@ -1,3 +1,7 @@
-<div class="cell-block" #cube>
+<div
+  class="cell-block"
+  #cube
+  [ngClass]="{ 'has-gold': cell.hasGold, 'is-wumpus': cell.isWumpus }"
+>
   {{ cell?.number }}
 </div>

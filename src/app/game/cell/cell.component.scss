@@ -1,11 +1,21 @@
 $wallColor: burlywood;
 $escapeColor: red;
+$goldColor: gold;
+$wumpusColor: green;
 $wallBorder: 10px;
 
 .cell-block {
   border: 1px black solid;
   width: 110px;
   height: 110px;
+}
+
+.has-gold {
+  background-color: $goldColor;
+}
+
+.is-wumpus {
+  background-color: $wumpusColor;
 }
 
 .wall {

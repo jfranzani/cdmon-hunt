@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { GameConfiguration } from 'src/app/core/models/configuration';
 import { Board, Cell } from 'src/app/core/models/game';
 import { GameService } from 'src/app/services/game.service';
@@ -26,13 +25,14 @@ export class BoardComponent implements OnInit {
   }
 
   createBoardMatrix() {
+    let cells: Cell[][];
     this.gameSettings = this.storageService.getGameSettings();
     this.board = this.gameservice.createEmptyBoard(this.gameSettings);
-    const escapeIndex = this.gameservice.getEscapeRandomNumber(
-      this.gameSettings.cellsY,
-      this.gameSettings.cellsX
-    );
-    this.gameservice.addEscapeCell(this.board.cells, escapeIndex);
-    console.log(this.board.cells);
+    cells = this.board.cells;
+    this.gameservice.addEscapeCell(cells);
+    this.gameservice.addGold(cells);
+    this.gameservice.addWumpus(cells);
+    this.gameservice.createCleanPathToGold(cells);
+    console.log(cells);
   }
 }
