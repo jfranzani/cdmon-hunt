@@ -1,8 +1,15 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { getAvailableDirections } from 'src/app/core/helpers/helper-functions';
 import { GameConfiguration } from 'src/app/core/models/configuration';
-import { AxisDirection, Board, Cell } from 'src/app/core/models/game';
+import { AxisDirection, Board, Cell, KEY_CODE } from 'src/app/core/models/game';
 import { GameService } from 'src/app/services/game.service';
 import { PathCreatorService } from 'src/app/services/path-creator.service';
 import { PlayerService } from 'src/app/services/player.service';
@@ -15,6 +22,8 @@ import { StorageService } from 'src/app/services/storage.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BoardComponent implements OnInit {
+  @ViewChild('content', { static: false }) private content;
+
   gameSettings: GameConfiguration;
   board: Board;
   playerCell: Cell;
@@ -27,6 +36,7 @@ export class BoardComponent implements OnInit {
     private gameService: GameService,
     private playerService: PlayerService,
     private pathService: PathCreatorService,
+    private modalService: NgbModal,
     private route: Router
   ) {}
 
@@ -72,15 +82,23 @@ export class BoardComponent implements OnInit {
       direction
     );
 
-    if (!this.playerCell) {
-      this.hunterDied();
-    } else {
+    if (this.board.player.isAlive) {
       this.checkBoardStatus();
+    } else {
+      this.hunterDied();
     }
   }
 
-  hunterDied() {
-    console.log('DEADDDD');
+  async hunterDied() {
+    const res = await this.modalService.open(this.content, {
+      centered: true,
+      backdrop: 'static',
+    }).result;
+    if (res === 'settings') {
+      this.goBack();
+    } else {
+      this.resetBoard();
+    }
   }
 
   resetBoard() {
@@ -89,5 +107,21 @@ export class BoardComponent implements OnInit {
 
   goBack() {
     this.route.navigate(['']);
+  }
+
+  @HostListener('window:keyup', ['$event'])
+  keyEvent(event: KeyboardEvent) {
+    if (event.key === KEY_CODE.RIGHT_ARROW) {
+      this.move(AxisDirection.East);
+    }
+    if (event.key === KEY_CODE.LEFT_ARROW) {
+      this.move(AxisDirection.West);
+    }
+    if (event.key === KEY_CODE.DOWN_ARROW) {
+      this.move(AxisDirection.South);
+    }
+    if (event.key === KEY_CODE.UP_ARROW) {
+      this.move(AxisDirection.North);
+    }
   }
 }

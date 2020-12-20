@@ -37,6 +37,9 @@ export class PlayerService {
         this.messagesService.getMessage(ConsoleMessages.playerDead)
       );
       board.player.isAlive = false;
+      board.diedReason = this.messagesService.getMessage(
+        ConsoleMessages.pitDead
+      );
       return null;
     }
     currentCell.hasPlayer = false;

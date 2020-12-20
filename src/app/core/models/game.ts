@@ -12,6 +12,7 @@ export class Board {
   cells: Cell[][];
   player: Player;
   log: string[];
+  diedReason: string;
   availableDirections: AvailableDirections;
   constructor(cells: Cell[][] = [], log = [], player = new Player()) {
     this.cells = cells;
@@ -133,4 +134,11 @@ export enum ConsoleMessages {
   noMoreArrows,
   goldenFound,
   playerDead,
+}
+
+export enum KEY_CODE {
+  RIGHT_ARROW = 'ArrowRight',
+  LEFT_ARROW = 'ArrowLeft',
+  UP_ARROW = 'ArrowUp',
+  DOWN_ARROW = 'ArrowDown',
 }

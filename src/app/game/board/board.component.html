@@ -9,10 +9,10 @@
     </div>
     <div class="buttons">
       <button (click)="resetBoard()" class="btn btn-primary">
-        Refresh Board
+        Refrescar Tablero
       </button>
       <button (click)="goBack()" class="btn btn-secondary">
-        Go back to settings
+        Volver a la configuración
       </button>
     </div>
   </div>
@@ -56,3 +56,29 @@
     </div>
   </div>
 </div>
+
+<ng-template #content let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">HAS MUERTO</h4>
+  </div>
+  <div class="modal-body">
+    <p>{{ board?.diedReason }}</p>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="modal.close('again')"
+    >
+      Jugar de nuevo
+    </button>
+
+    <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="modal.close('settings')"
+    >
+      Cambiar la configuración
+    </button>
+  </div>
+</ng-template>
