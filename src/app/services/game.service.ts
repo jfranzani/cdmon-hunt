@@ -2,11 +2,9 @@ import { Injectable } from '@angular/core';
 import {
   findSpecificCell,
   getAdjacentCell,
-  getAdjancentCoordinateBasedOnDirection,
   getAvailableCells,
   getEscapeRandomNumber,
   isCellAlreadyTaken,
-  isCoordinateInvalid,
 } from '../core/helpers/helper-functions';
 import { GameConfiguration } from '../core/models/configuration';
 import {
@@ -24,7 +22,15 @@ import { PathCreatorService } from './path-creator.service';
   providedIn: 'root',
 })
 export class GameService {
+  private _board: Board;
   constructor(private pathCreatorService: PathCreatorService) {}
+
+  get board() {
+    return this._board;
+  }
+  set board(board: Board) {
+    this._board = board;
+  }
 
   getDefaultGameSettings(): GameConfiguration {
     return {
@@ -51,12 +57,12 @@ export class GameService {
       }
     }
     board.cells = cells;
+    this.board = board;
     return board;
   }
 
   addEscapeCell(cells: Cell[][]) {
     let escapeIndex = getEscapeRandomNumber(cells.length, cells[0].length);
-    console.log('ESCAPE INDEX ', escapeIndex);
     let wallIndex = 0;
     for (let i = 0; i < cells.length; i++) {
       for (let j = 0; j < cells[i].length; j++) {
@@ -128,9 +134,7 @@ export class GameService {
    */
   addGold(cells: Cell[][]): void {
     let availableCells = getAvailableCells(cells);
-    console.log('availableCells:', availableCells);
     let goldNumber = Math.floor(Math.random() * availableCells.length);
-    console.log('GOLD NUMBER: ', goldNumber);
     let selectedCell = availableCells.find(
       (cell, index) => index === goldNumber
     );
@@ -168,15 +172,6 @@ export class GameService {
     selectedCell.isPit = true;
   }
 
-  createCleanPathToGold(cells: Cell[][]) {
-    let escapeCell = findSpecificCell(cells, SearcheableCellAttr.isEscape);
-    let path = this.pathCreatorService.findPath(cells, escapeCell);
-    for (let coordinate of path.slice(0, path.length - 1)) {
-      let cube = cells[coordinate.Y][coordinate.X];
-      cube.isClearPath = true;
-    }
-  }
-
   addBreezeToPits(cells: Cell[][]) {
     let availableCells = [];
     for (let i: number = 0; i < cells.length; i++) {
@@ -194,6 +189,13 @@ export class GameService {
     return availableCells;
   }
 
+  /**
+   * Function to set to true any prop for any adjacent
+   * free cell
+   * @param cells
+   * @param selectedCell
+   * @param attributeToActivate
+   */
   activeAdjacentProps(
     cells: Cell[][],
     selectedCell: Cell,

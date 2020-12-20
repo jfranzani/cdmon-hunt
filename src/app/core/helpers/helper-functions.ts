@@ -1,5 +1,7 @@
 import {
+  AvailableDirections,
   AxisDirection,
+  Board,
   BoardCoordinate,
   Cell,
   SearcheableCellAttr,
@@ -143,4 +145,63 @@ export function getAdjacentCell(
   } else {
     return null;
   }
+}
+
+export function getAvailableDirections(
+  board: Board,
+  currentCell: Cell
+): AvailableDirections {
+  let coordinate: BoardCoordinate = {
+    X: currentCell.coordinateX,
+    Y: currentCell.coordinateY,
+  };
+  let availableDirections: AvailableDirections = {
+    north: false,
+    south: false,
+    east: false,
+    west: false,
+  };
+  let northCoordinate = getAdjancentCoordinateBasedOnDirection(
+    AxisDirection.North,
+    coordinate
+  );
+  let southCoordinate = getAdjancentCoordinateBasedOnDirection(
+    AxisDirection.South,
+    coordinate
+  );
+  let eastCoordinate = getAdjancentCoordinateBasedOnDirection(
+    AxisDirection.East,
+    coordinate
+  );
+  let westCoordinate = getAdjancentCoordinateBasedOnDirection(
+    AxisDirection.West,
+    coordinate
+  );
+
+  if (
+    !isCoordinateInvalid(northCoordinate.X, northCoordinate.Y, board.cells.length)
+  ) {
+    availableDirections.north = true;
+  }
+  if (
+    !isCoordinateInvalid(
+      southCoordinate.X,
+      southCoordinate.Y,
+      board.cells.length
+    )
+  ) {
+    availableDirections.south = true;
+  }
+  if (
+    !isCoordinateInvalid(eastCoordinate.X, eastCoordinate.Y, board.cells.length)
+  ) {
+    availableDirections.east = true;
+  }
+  if (
+    !isCoordinateInvalid(westCoordinate.X, westCoordinate.Y, board.cells.length)
+  ) {
+    availableDirections.west = true;
+  }
+
+  return availableDirections;
 }

@@ -34,6 +34,12 @@ $stinkColor: brown;
     margin-left: 5px;
     margin-top: 5px;
   }
+  &-hunter {
+    margin-left: 25px;
+    margin-top: 10px;
+    height: 50%;
+    width: 50%;
+  }
 }
 
 .inner-cell {
@@ -72,9 +78,9 @@ $stinkColor: brown;
   border-radius: 50%;
 }
 
-.is-clear-path {
-  background-color: $clearPathColor;
-}
+// .is-clear-path {
+//   background-color: $clearPathColor;
+// }
 
 .wall {
   &-left {

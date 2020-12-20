@@ -1,22 +1,28 @@
 export class Player {
-  arrows: number[];
+  arrows: number;
   hasGold: boolean;
+  isAlive: boolean;
   name?: string;
-  constructor(name = 'John Doe', arrows = 1, hasGold = false) {
-    Object.assign(this, { name, arrows, hasGold });
+  constructor(name = 'John Doe', arrows = 1, hasGold = false, isAlive = true) {
+    Object.assign(this, { name, arrows, hasGold, isAlive });
   }
 }
 
 export class Board {
   cells: Cell[][];
-  constructor(cells: Cell[][] = []) {
+  player: Player;
+  log: string[];
+  availableDirections: AvailableDirections;
+  constructor(cells: Cell[][] = [], log = [], player = new Player()) {
     this.cells = cells;
+    this.log = log;
+    this.player = player;
   }
 }
 
 export class Cell {
+  hasPlayer: boolean;
   number: number;
-  type: CellType;
   wall: Wall;
   isEscape: boolean;
   isPit: boolean;
@@ -33,7 +39,6 @@ export class Cell {
     coordinateY,
     coordinateX,
     wall = new Wall(),
-    type = CellType.VACIO,
     isEscape = false,
     hasGold = false,
     isPit = false,
@@ -44,7 +49,6 @@ export class Cell {
       { number },
       { coordinateX },
       { coordinateY },
-      { type },
       { wall },
       { isEscape },
       { hasGold },
@@ -67,6 +71,13 @@ export class Wall {
   }
 }
 
+export interface AvailableDirections {
+  north: boolean;
+  south: boolean;
+  east: boolean;
+  west: boolean;
+}
+
 export interface BoardCoordinate {
   X: number;
   Y: number;
@@ -83,6 +94,7 @@ export enum SearcheableCellAttr {
   isEscape = 'isEscape',
   isPit = 'isPit',
   isWumpus = 'isWumpus',
+  hasPlayer = 'hasPlayer',
 }
 
 export enum CellAttributeToActive {
@@ -107,12 +119,18 @@ export enum AxisDirection {
   West,
 }
 
-export enum CellType {
-  POZO,
-  WUMPUS,
-  VACIO,
-  BRIZA,
-  HEDOR,
-  ORO,
-  CAZADOR,
+export enum ConsoleMessages {
+  wumpusWon,
+  wumpusDead,
+  wumpusScream,
+  wumpusStink,
+  pitDead,
+  pitBreeze,
+  wallAhead,
+  arrowFired,
+  arrowHitWall,
+  arrowHitWumpus,
+  noMoreArrows,
+  goldenFound,
+  playerDead,
 }

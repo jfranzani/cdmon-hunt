@@ -1,20 +1,58 @@
-<div class="container">
-  <h1>HUNT THE WUMPUS!</h1>
-  <div
-    *ngFor="let row of board.cells; let even = even; let odd = odd"
-    class="cell-row"
-    [ngClass]="{ odd: odd, even: even }"
-  >
-    <div class="field" *ngFor="let field of row">
-      <app-cell [cell]="field"></app-cell>
+<div class="d-md-flex h-md-100 align-items-center container">
+  <!-- LEFT SIDE SCREEN -->
+  <div class="col-md-6 p-0 bg-indigo h-md-100">
+    <h1>HUNT THE WUMPUS!</h1>
+    <div *ngFor="let row of board.cells" class="cell-row">
+      <div class="field" *ngFor="let field of row">
+        <app-cell [cell]="field"></app-cell>
+      </div>
+    </div>
+    <div class="buttons">
+      <button (click)="resetBoard()" class="btn btn-primary">
+        Refresh Board
+      </button>
+      <button (click)="goBack()" class="btn btn-secondary">
+        Go back to settings
+      </button>
     </div>
   </div>
-  <div class="buttons">
-    <button (click)="resetBoard()" class="btn btn-primary">
-      Refresh Board
-    </button>
-    <button (click)="goBack()" class="btn btn-secondary">
-      Go back to settings
-    </button>
+  <!-- RIGHT SIDE SCREEN -->
+  <div class="col-md-6 p-0 bg-indigo h-md-100 keyboard">
+    <div class="keys">
+      <!-- TOP KEY -->
+      <div
+        (click)="move(AxisDirection.North)"
+        [class.disabled]="!board?.availableDirections?.north"
+        class="up arr"
+      >
+        <span>&#x2191;</span><i class="fa fa-arrow-up"></i>
+      </div>
+      <br />
+      <!-- LEFT KEY -->
+      <div
+        (click)="move(AxisDirection.West)"
+        class="left arr"
+        [class.disabled]="!board?.availableDirections?.west"
+      >
+        <span>&#8592;</span><i class="fa fa-arrow-left"></i>
+      </div>
+      <!-- DOWN KEY -->
+      <div
+        (click)="move(AxisDirection.South)"
+        class="down arr"
+        [class.disabled]="!board?.availableDirections?.south"
+      >
+        <span>&#8595;</span>
+        <i class="fa fa-arrow-down"></i>
+      </div>
+      <!-- RIGHT KEY -->
+      <div
+        (click)="move(AxisDirection.East)"
+        class="right arr"
+        [class.disabled]="!board?.availableDirections?.east"
+      >
+        <span>&#x2192;</span><i class="fa fa-arrow-right"></i>
+      </div>
+    </div>
   </div>
 </div>

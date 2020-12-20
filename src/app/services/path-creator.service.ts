@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import {
+  findSpecificCell,
   isCellAlreadyTaken,
   isCoordinateInvalid,
 } from '../core/helpers/helper-functions';
@@ -9,6 +10,7 @@ import {
   Cell,
   LocationPath,
   PathFinderStatus,
+  SearcheableCellAttr,
 } from '../core/models/game';
 
 @Injectable({
@@ -16,6 +18,21 @@ import {
 })
 export class PathCreatorService {
   constructor() {}
+
+  /**
+   * Create a Path to gold to make sure that the player
+   * will be able to reach the gold and go back
+   * without being blocked for pits or the Wumpus
+   * @param cells
+   */
+  createCleanPathToGold(cells: Cell[][]) {
+    let escapeCell = findSpecificCell(cells, SearcheableCellAttr.isEscape);
+    let path = this.findPath(cells, escapeCell);
+    for (let coordinate of path.slice(0, path.length - 1)) {
+      let cube = cells[coordinate.Y][coordinate.X];
+      cube.isClearPath = true;
+    }
+  }
 
   findPath(board: Cell[][], escapeCell: Cell): BoardCoordinate[] {
     let distanceFromTop = escapeCell.coordinateY;

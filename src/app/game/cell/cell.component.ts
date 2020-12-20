@@ -11,7 +11,6 @@ import { Cell } from 'src/app/core/models/game';
   selector: 'app-cell',
   templateUrl: './cell.component.html',
   styleUrls: ['./cell.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CellComponent implements AfterViewInit {
   @ViewChild('cube', { static: false }) cellElement;
