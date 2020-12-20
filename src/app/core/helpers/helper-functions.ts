@@ -111,13 +111,14 @@ export function getAdjancentCoordinateBasedOnDirection(
 export function isCoordinateInvalid(
   coordinateX: number,
   coordinateY: number,
-  boardSize: number
+  boardSizeX: number,
+  boardSizeY: number
 ) {
   return (
     coordinateX < 0 ||
-    coordinateX >= boardSize ||
+    coordinateX >= boardSizeX ||
     coordinateY < 0 ||
-    coordinateY >= boardSize
+    coordinateY >= boardSizeY
   );
 }
 
@@ -140,7 +141,14 @@ export function getAdjacentCell(
     direction,
     coordinate
   );
-  if (!isCoordinateInvalid(newCoordinate.X, newCoordinate.Y, cells.length)) {
+  if (
+    !isCoordinateInvalid(
+      newCoordinate.X,
+      newCoordinate.Y,
+      cells[0].length,
+      cells.length
+    )
+  ) {
     return cells[newCoordinate.Y][newCoordinate.X];
   } else {
     return null;
@@ -151,6 +159,8 @@ export function getAvailableDirections(
   board: Board,
   currentCell: Cell
 ): AvailableDirections {
+  let boardX = board.cells[0].length;
+  let boardY = board.cells.length;
   let coordinate: BoardCoordinate = {
     X: currentCell.coordinateX,
     Y: currentCell.coordinateY,
@@ -179,26 +189,22 @@ export function getAvailableDirections(
   );
 
   if (
-    !isCoordinateInvalid(northCoordinate.X, northCoordinate.Y, board.cells.length)
+    !isCoordinateInvalid(northCoordinate.X, northCoordinate.Y, boardX, boardY)
   ) {
     availableDirections.north = true;
   }
   if (
-    !isCoordinateInvalid(
-      southCoordinate.X,
-      southCoordinate.Y,
-      board.cells.length
-    )
+    !isCoordinateInvalid(southCoordinate.X, southCoordinate.Y, boardX, boardY)
   ) {
     availableDirections.south = true;
   }
   if (
-    !isCoordinateInvalid(eastCoordinate.X, eastCoordinate.Y, board.cells.length)
+    !isCoordinateInvalid(eastCoordinate.X, eastCoordinate.Y, boardX, boardY)
   ) {
     availableDirections.east = true;
   }
   if (
-    !isCoordinateInvalid(westCoordinate.X, westCoordinate.Y, board.cells.length)
+    !isCoordinateInvalid(westCoordinate.X, westCoordinate.Y, boardX, boardY)
   ) {
     availableDirections.west = true;
   }

@@ -34,7 +34,7 @@ export class MessagesService {
     );
     this.availableMessages.set(
       ConsoleMessages.noMoreArrows,
-      'Ya no posees flechas'
+      'Ya no dispones de flechas'
     );
     this.availableMessages.set(
       ConsoleMessages.pitBreeze,
@@ -56,19 +56,15 @@ export class MessagesService {
     );
     this.availableMessages.set(
       ConsoleMessages.wumpusStink,
-      'Sientes un hedor muy intentso'
+      'Sientes un hedor muy intenso'
     );
     this.availableMessages.set(
       ConsoleMessages.wumpusWon,
       'Ves al Wumpus cara a cara y recibes un golpe con su garrote'
     );
-  }
-
-  getWumpusWonMessage(): string {
-    return 'El Wumpus te ha matado';
-  }
-
-  getFellToPitMessage(): string {
-    return 'Te has caído en un pozo';
+    this.availableMessages.set(
+      ConsoleMessages.emptyCell,
+      'No hay nada por aquí...'
+    );
   }
 }

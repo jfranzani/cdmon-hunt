@@ -48,7 +48,10 @@ export class BoardComponent implements OnInit {
     this.createBoardMatrix();
     this.addPlayer();
     this.checkBoardStatus();
-    console.log(this.board);
+    this.board.log.push({
+      message: 'Entras a la mazmorra...',
+      class: 'start',
+    });
   }
 
   createBoardMatrix() {
@@ -83,13 +86,28 @@ export class BoardComponent implements OnInit {
     );
 
     if (this.board.player.isAlive) {
-      this.checkBoardStatus();
+      if (this.board.player.isAlive && this.playerCell.isEscape) {
+      } else {
+        this.checkBoardStatus();
+      }
     } else {
       this.hunterDied();
     }
   }
 
   async hunterDied() {
+    const res = await this.modalService.open(this.content, {
+      centered: true,
+      backdrop: 'static',
+    }).result;
+    if (res === 'settings') {
+      this.goBack();
+    } else {
+      this.resetBoard();
+    }
+  }
+
+  async hunterWon() {
     const res = await this.modalService.open(this.content, {
       centered: true,
       backdrop: 'static',

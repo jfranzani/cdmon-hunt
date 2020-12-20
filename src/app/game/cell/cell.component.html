@@ -1,33 +1,5 @@
 <div class="cell-block" #cube>
-  <div
-    class="inner-cell"
-    [ngClass]="{
-      'has-gold': cell.hasGold,
-      'is-wumpus': cell.isWumpus,
-      'is-clear-path': cell.isClearPath,
-      'is-pit': cell.isPit,
-      'has-breeze': cell.hasBreeze,
-      'has-stink': cell.hasStink
-    }"
-  >
-    <div *ngIf="cell.isWumpus">
-      <img class="cell-img cell-img-wumpus" src="assets/images/wumpus.png" />
-    </div>
-    <div *ngIf="cell.hasGold">
-      <img class="cell-img cell-img-gold" src="assets/images/gold.jpg" />
-    </div>
-    <div *ngIf="cell.hasBreeze && !cell.hasStink">
-      <img class="cell-img cell-img-breeze" src="assets/images/breeze.jpg" />
-    </div>
-    <div *ngIf="cell.hasStink && !cell.hasBreeze">
-      <img class="cell-img cell-img-stink" src="assets/images/stink.png" />
-    </div>
-    <div *ngIf="cell.hasStink && cell.hasBreeze">
-      <img
-        class="cell-img cell-img-stink"
-        src="assets/images/stinkAndBreeze.png"
-      />
-    </div>
+  <div class="inner-cell">
     <div *ngIf="cell.hasPlayer">
       <img class="cell-img cell-img-hunter" src="assets/images/hunter.png" />
     </div>

@@ -115,12 +115,13 @@ export class PathCreatorService {
   // (a location is "valid" if it is on the board, is not an "obstacle",
   // and has not yet been visited by our algorithm)
   locationStatus(location: LocationPath, board: Cell[][]): PathFinderStatus {
-    let boardSize = board.length;
+    let boardX = board[0].length;
+    let boardY = board.length;
     let coordY = location.distanceFromTop;
     let coordX = location.distanceFromLeft;
 
     // Out of the limits of the board
-    if (isCoordinateInvalid(coordX, coordY, boardSize)) {
+    if (isCoordinateInvalid(coordX, coordY, boardX, boardY)) {
       return PathFinderStatus.Invalid;
     }
 

@@ -11,7 +11,7 @@ export class Player {
 export class Board {
   cells: Cell[][];
   player: Player;
-  log: string[];
+  log: CellLog[];
   diedReason: string;
   availableDirections: AvailableDirections;
   constructor(cells: Cell[][] = [], log = [], player = new Player()) {
@@ -35,6 +35,7 @@ export class Cell {
   status: PathFinderStatus;
   hasBreeze: boolean;
   hasStink: boolean;
+
   constructor(
     number,
     coordinateY,
@@ -45,17 +46,16 @@ export class Cell {
     isPit = false,
     isWumpus = false
   ) {
-    Object.assign(
-      this,
-      { number },
-      { coordinateX },
-      { coordinateY },
-      { wall },
-      { isEscape },
-      { hasGold },
-      { isPit },
-      { isWumpus }
-    );
+    Object.assign(this, {
+      number,
+      coordinateX,
+      coordinateY,
+      wall,
+      isEscape,
+      hasGold,
+      isPit,
+      isWumpus,
+    });
   }
 }
 
@@ -89,6 +89,11 @@ export interface LocationPath {
   distanceFromLeft: number;
   path: BoardCoordinate[];
   status: PathFinderStatus;
+}
+
+export interface CellLog {
+  message: string;
+  class?: string;
 }
 
 export enum SearcheableCellAttr {
@@ -134,6 +139,7 @@ export enum ConsoleMessages {
   noMoreArrows,
   goldenFound,
   playerDead,
+  emptyCell,
 }
 
 export enum KEY_CODE {
