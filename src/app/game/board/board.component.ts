@@ -77,6 +77,9 @@ export class BoardComponent implements OnInit {
     this.gameService.addPits(cells, this.gameSettings.pits);
   }
 
+  /**
+   * Update board status
+   */
   checkBoardStatus() {
     this.playerCell = this.playerService.getPlayerCell(this.board.cells);
     this.board.availableDirections = getAvailableDirections(
@@ -89,6 +92,10 @@ export class BoardComponent implements OnInit {
     this.playerService.addPlayerToItsInitialCell(this.board.cells);
   }
 
+  /**
+   * Move player in the board
+   * @param direction
+   */
   move(direction: AxisDirection) {
     this.playerCell = this.playerService.movePlayer(
       this.board,
