@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GameConfiguration } from '../core/models/configuration';
@@ -9,7 +9,7 @@ import { StorageService } from '../services/storage.service';
   templateUrl: './configuration-screen.component.html',
   styleUrls: ['./configuration-screen.component.scss'],
 })
-export class ConfigurationScreenComponent implements OnInit {
+export class ConfigurationScreenComponent {
   settingsForm: FormGroup;
 
   constructor(
@@ -17,10 +17,10 @@ export class ConfigurationScreenComponent implements OnInit {
     private router: Router,
     private storageService: StorageService
   ) {
-    this.creatReactiveForm();
+    this.createReactiveForm();
   }
 
-  creatReactiveForm() {
+  createReactiveForm() {
     const gameSettings = this.storageService.getGameSettings();
     this.settingsForm = this.fb.group({
       colsX: [gameSettings?.cellsX || 8],
@@ -29,8 +29,6 @@ export class ConfigurationScreenComponent implements OnInit {
       arrows: [gameSettings?.arrows || 1],
     });
   }
-
-  ngOnInit(): void {}
 
   onSubmit() {
     const settings: GameConfiguration = {
