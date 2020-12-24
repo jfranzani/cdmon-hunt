@@ -1,4 +1,3 @@
-import { ThrowStmt } from '@angular/compiler';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,7 +6,6 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { faThumbsDown } from '@fortawesome/free-solid-svg-icons';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { getAvailableDirections } from 'src/app/core/helpers/helper-functions';
 import { GameConfiguration } from 'src/app/core/models/configuration';
@@ -23,7 +21,6 @@ import { MessagesService } from 'src/app/services/messages.service';
 import { PathCreatorService } from 'src/app/services/path-creator.service';
 import { PlayerService } from 'src/app/services/player.service';
 import { StorageService } from 'src/app/services/storage.service';
-import { TrueLiteral } from 'typescript';
 
 @Component({
   selector: 'app-board',

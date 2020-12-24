@@ -1,5 +1,6 @@
 <div class="align-items-center container-fluid">
   <h1>HUNT THE WUMPUS!</h1>
+  <h4>Reglas: <i [ngbTooltip]="tipContent" class="fas fa-info-circle"></i></h4>
   <h5>Utiliza las flechas teclado para moverte o diparar</h5>
   <div class="logger mt-1 mb-2">
     <p>
@@ -73,4 +74,18 @@
       Cambiar la configuración
     </button>
   </div>
+</ng-template>
+
+<ng-template #tipContent>
+  <p>* El objetivo del juego es encontrar la celda del oro y escapar.</p>
+  <p>
+    * Utiliza las flechas de tu teclado para realizar acciones con tu personaje.
+  </p>
+  <p>
+    * Puedes cambiar de modo <b>caminar</b> a modo <b>disparar</b> mediante el
+    botón de "Cambiar Modo".
+  </p>
+  <p>* Si te paras sobre una celda que tenga al Wumpus o un Pozo, mueres.</p>
+  <p>* Puedes matar al Wumpus si lo alcanza una flecha disparada en su dirección.</p>
+  <p>* Puedes ver los logs de tus acciones y el estado en la parte superior de la pantalla.</p>
 </ng-template>
