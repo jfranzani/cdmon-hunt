@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { getCellMocked } from 'src/app/core/helpers/helper-mock';
 
 import { CellComponent } from './cell.component';
 
@@ -8,14 +9,14 @@ describe('CellComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CellComponent ]
-    })
-    .compileComponents();
+      declarations: [CellComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(CellComponent);
     component = fixture.componentInstance;
+    component.cell = getCellMocked();
     fixture.detectChanges();
   });
 

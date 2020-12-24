@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { ConfigurationScreenComponent } from './configuration-screen.component';
 
@@ -8,9 +10,9 @@ describe('ConfigurationScreenComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ConfigurationScreenComponent ]
-    })
-    .compileComponents();
+      declarations: [ConfigurationScreenComponent],
+      imports: [FormsModule, ReactiveFormsModule, RouterTestingModule],
+    }).compileComponents();
   });
 
   beforeEach(() => {
