@@ -1,12 +1,4 @@
-$wallColor: burlywood;
-$escapeColor: red;
-$goldColor: gold;
-$wumpusColor: green;
-$clearPathColor: grey;
-$pitColor: black;
-$wallBorder: 10px;
-$breezeColor: #109dfa;
-$stinkColor: brown;
+@import "/src/app/styles/colors";
 
 .cell-img {
   width: 100px;
@@ -51,36 +43,10 @@ $stinkColor: brown;
 }
 
 .cell-block {
-  border: 1px black solid;
+  border: 1px $pitColor solid;
   width: 110px;
   height: 110px;
 }
-
-// .has-breeze {
-//   background-color: $breezeColor;
-// }
-
-// .has-stink {
-//   background-color: $stinkColor;
-// }
-
-// .has-gold {
-//   background-color: $goldColor;
-// }
-
-// .is-wumpus {
-//   background-color: $wumpusColor;
-// }
-
-.is-pit {
-  background-color: $pitColor;
-
-  border-radius: 50%;
-}
-
-// .is-clear-path {
-//   background-color: $clearPathColor;
-// }
 
 .wall {
   &-left {

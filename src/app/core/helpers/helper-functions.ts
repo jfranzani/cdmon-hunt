@@ -5,6 +5,7 @@ import {
   BoardCoordinate,
   Cell,
   SearcheableCellAttr,
+  Wall,
 } from '../models/game';
 
 /**
@@ -210,4 +211,8 @@ export function getAvailableDirections(
   }
 
   return availableDirections;
+}
+
+export function isWall(wall: Wall) {
+  return wall.top || wall.bottom || wall.left || wall.right;
 }

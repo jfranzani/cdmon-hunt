@@ -66,5 +66,17 @@ export class MessagesService {
       ConsoleMessages.emptyCell,
       'No hay nada por aquí...'
     );
+    this.availableMessages.set(
+      ConsoleMessages.wonGame,
+      'Felicitaciones! Has ecapado con el oro!'
+    );
+    this.availableMessages.set(
+      ConsoleMessages.arrowHitWall,
+      'Escuchas el ruido de la flecha golpear la pared'
+    );
+    this.availableMessages.set(
+      ConsoleMessages.arrowHitWumpus,
+      'Escuchas el grito de dolor del Wumpus'
+    );
   }
 }

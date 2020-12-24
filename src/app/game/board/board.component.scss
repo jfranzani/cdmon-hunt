@@ -1,8 +1,7 @@
+@import "/src/app/styles/colors";
+
 .cell-row {
   display: flex;
-}
-
-.board-table {
 }
 
 .buttons {
@@ -15,11 +14,13 @@
 .logger {
   border-radius: 2px;
   padding: 5px;
-  height: 60px;
+  height: 70px;
   width: 300px;
   overflow: auto;
   background: lightgray;
   font-weight: bold;
+  display: inline-block;
+  border: $wallColor 2px solid;
   .stink {
     color: brown;
   }
@@ -29,4 +30,22 @@
   .gold {
     color: green;
   }
+}
+
+.arrow-number,
+.walk-mode {
+  color: green;
+}
+
+.walk-btn-color {
+  background-color: darkred;
+}
+
+.shoot-btn-color {
+  background-color: green;
+}
+
+.no-arrows,
+.arrow-mode {
+  color: red;
 }

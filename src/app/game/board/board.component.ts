@@ -1,3 +1,4 @@
+import { ThrowStmt } from '@angular/compiler';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,14 +7,23 @@ import {
   ViewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { faThumbsDown } from '@fortawesome/free-solid-svg-icons';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { getAvailableDirections } from 'src/app/core/helpers/helper-functions';
 import { GameConfiguration } from 'src/app/core/models/configuration';
-import { AxisDirection, Board, Cell, KEY_CODE } from 'src/app/core/models/game';
+import {
+  AxisDirection,
+  Board,
+  Cell,
+  ConsoleMessages,
+  KEY_CODE,
+} from 'src/app/core/models/game';
 import { GameService } from 'src/app/services/game.service';
+import { MessagesService } from 'src/app/services/messages.service';
 import { PathCreatorService } from 'src/app/services/path-creator.service';
 import { PlayerService } from 'src/app/services/player.service';
 import { StorageService } from 'src/app/services/storage.service';
+import { TrueLiteral } from 'typescript';
 
 @Component({
   selector: 'app-board',
@@ -30,6 +40,9 @@ export class BoardComponent implements OnInit {
   cells: Cell[][];
   // Store a reference to the enum to use in template
   AxisDirection = AxisDirection;
+  isWalking = true;
+  modalTitle: string;
+  modalMessage: string;
 
   constructor(
     private storageService: StorageService,
@@ -37,6 +50,7 @@ export class BoardComponent implements OnInit {
     private playerService: PlayerService,
     private pathService: PathCreatorService,
     private modalService: NgbModal,
+    private messagesService: MessagesService,
     private route: Router
   ) {}
 
@@ -85,33 +99,44 @@ export class BoardComponent implements OnInit {
       direction
     );
 
+    if (this.board.player.escaped) {
+      this.modalTitle = 'HAS GANADO LA PARTIDA';
+      this.modalMessage = this.messagesService.getMessage(
+        ConsoleMessages.wonGame
+      );
+      this.openResetModal();
+      return;
+    }
+
     if (this.board.player.isAlive) {
-      if (this.board.player.isAlive && this.playerCell.isEscape) {
-      } else {
-        this.checkBoardStatus();
-      }
+      this.checkBoardStatus();
     } else {
-      this.hunterDied();
+      this.modalTitle = 'HAS MUERTO';
+      this.modalMessage = this.board?.diedReason || '';
+      this.openResetModal();
     }
   }
 
-  async hunterDied() {
+  shootArrow(direction: AxisDirection) {
+    if (this.board.player.arrows < 1) {
+      this.board.log[0].message =
+        'Buscas en tu mochila pero no encuentras más flechas';
+    } else {
+      this.playerService.shootArrow(this.board, this.playerCell, direction);
+      this.board.player.arrows -= 1;
+      this.checkBoardStatus();
+    }
+  }
+
+  async openResetModal() {
     const res = await this.modalService.open(this.content, {
       centered: true,
       backdrop: 'static',
     }).result;
-    if (res === 'settings') {
-      this.goBack();
-    } else {
-      this.resetBoard();
-    }
+    this.modalResponse(res);
   }
 
-  async hunterWon() {
-    const res = await this.modalService.open(this.content, {
-      centered: true,
-      backdrop: 'static',
-    }).result;
+  modalResponse(res: string) {
     if (res === 'settings') {
       this.goBack();
     } else {
@@ -129,17 +154,35 @@ export class BoardComponent implements OnInit {
 
   @HostListener('window:keyup', ['$event'])
   keyEvent(event: KeyboardEvent) {
-    if (event.key === KEY_CODE.RIGHT_ARROW) {
-      this.move(AxisDirection.East);
-    }
-    if (event.key === KEY_CODE.LEFT_ARROW) {
-      this.move(AxisDirection.West);
-    }
-    if (event.key === KEY_CODE.DOWN_ARROW) {
-      this.move(AxisDirection.South);
-    }
-    if (event.key === KEY_CODE.UP_ARROW) {
-      this.move(AxisDirection.North);
+    switch (event.key) {
+      case KEY_CODE.RIGHT_ARROW:
+        if (this.isWalking) {
+          this.move(AxisDirection.East);
+        } else {
+          this.shootArrow(AxisDirection.East);
+        }
+        break;
+      case KEY_CODE.LEFT_ARROW:
+        if (this.isWalking) {
+          this.move(AxisDirection.West);
+        } else {
+          this.shootArrow(AxisDirection.West);
+        }
+        break;
+      case KEY_CODE.DOWN_ARROW:
+        if (this.isWalking) {
+          this.move(AxisDirection.South);
+        } else {
+          this.shootArrow(AxisDirection.South);
+        }
+        break;
+      case KEY_CODE.UP_ARROW:
+        if (this.isWalking) {
+          this.move(AxisDirection.North);
+        } else {
+          this.shootArrow(AxisDirection.North);
+        }
+        break;
     }
   }
 }

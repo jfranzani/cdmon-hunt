@@ -1,29 +1,26 @@
 import { Injectable } from '@angular/core';
 import {
-  findSpecificCell,
   getAdjacentCell,
   getAvailableCells,
   getEscapeRandomNumber,
   isCellAlreadyTaken,
+  isWall,
 } from '../core/helpers/helper-functions';
 import { GameConfiguration } from '../core/models/configuration';
 import {
   AxisDirection,
   Board,
-  BoardCoordinate,
   Cell,
   CellAttributeToActive,
-  SearcheableCellAttr,
   Wall,
 } from '../core/models/game';
-import { PathCreatorService } from './path-creator.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GameService {
   private _board: Board;
-  constructor(private pathCreatorService: PathCreatorService) {}
+  constructor() {}
 
   get board() {
     return this._board;
@@ -46,6 +43,7 @@ export class GameService {
     const colsY = +gameSetting.cellsY;
     const colsX = +gameSetting.cellsX;
     let board: Board = new Board();
+    board.player.arrows = gameSetting.arrows;
     let wall: Wall;
     let number = 1;
     for (let i: number = 0; i < colsX; i++) {
@@ -67,7 +65,7 @@ export class GameService {
     for (let i = 0; i < cells.length; i++) {
       for (let j = 0; j < cells[i].length; j++) {
         let cube = cells[i][j];
-        if (this.isWall(cube.wall)) {
+        if (isWall(cube.wall)) {
           if (wallIndex === escapeIndex) {
             cube.isEscape = true;
             return;
@@ -77,10 +75,6 @@ export class GameService {
         }
       }
     }
-  }
-
-  isWall(wall: Wall) {
-    return wall.top || wall.bottom || wall.left || wall.right;
   }
 
   /**

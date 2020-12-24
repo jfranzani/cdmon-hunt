@@ -3,6 +3,7 @@ export class Player {
   hasGold: boolean;
   isAlive: boolean;
   name?: string;
+  escaped?: boolean;
   constructor(name = 'John Doe', arrows = 1, hasGold = false, isAlive = true) {
     Object.assign(this, { name, arrows, hasGold, isAlive });
   }
@@ -96,6 +97,11 @@ export interface CellLog {
   class?: string;
 }
 
+export interface ArrowLog {
+  hitWumpus: boolean;
+  message: string;
+}
+
 export enum SearcheableCellAttr {
   isEscape = 'isEscape',
   isPit = 'isPit',
@@ -140,6 +146,7 @@ export enum ConsoleMessages {
   goldenFound,
   playerDead,
   emptyCell,
+  wonGame,
 }
 
 export enum KEY_CODE {

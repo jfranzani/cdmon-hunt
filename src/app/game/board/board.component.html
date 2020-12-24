@@ -1,10 +1,34 @@
 <div class="align-items-center container-fluid">
   <h1>HUNT THE WUMPUS!</h1>
-  <h5>Utiliza las flechas teclado para moverte</h5>
+  <h5>Utiliza las flechas teclado para moverte o diparar</h5>
+  <div class="logger mt-1 mb-2">
+    <p>
+      Modo Actual:
+      <span *ngIf="!isWalking" class="arrow-mode">DISPARAR FLECHA</span>
+      <span *ngIf="isWalking" class="walk-mode">CAMINAR</span>
+    </p>
+    <p>
+      Flechas Restantes:
+      <span
+        class="arrow-number"
+        [ngClass]="{ 'no-arrows': board.player?.arrows === 0 }"
+        >{{ board.player?.arrows }}</span
+      >
+    </p>
+  </div>
   <div class="logger mt-1 mb-2">
     <div *ngFor="let log of board.log">
       <span [class]="log.class">{{ log.message }}</span>
     </div>
+  </div>
+  <div>
+    <button
+      class="btn btn-primary mb-2"
+      [ngClass]="{ 'walk-btn-color': isWalking, 'shoot-btn-color': !isWalking }"
+      (click)="isWalking = !isWalking"
+    >
+      Cambiar modo a {{ !isWalking ? "Caminar" : "Disparar" }}
+    </button>
   </div>
   <div class="board-table">
     <div *ngFor="let row of board.cells" class="cell-row">
@@ -27,10 +51,10 @@
 
 <ng-template #content let-modal>
   <div class="modal-header">
-    <h4 class="modal-title">HAS MUERTO</h4>
+    <h4 class="modal-title">{{ modalTitle }}</h4>
   </div>
   <div class="modal-body">
-    <p>{{ board?.diedReason }}</p>
+    <p>{{ modalMessage }}</p>
   </div>
   <div class="modal-footer">
     <button
