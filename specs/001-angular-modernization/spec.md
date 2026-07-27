@@ -17,6 +17,19 @@ matches the brief or where a requirement below explicitly chooses to preserve a 
 Every requirement below states which source it follows and whether it preserves, changes, or adds to
 that source's behavior.
 
+## Clarifications
+
+### Session 2026-07-27
+
+- Q: Should the end-of-round modal (win/death/exit-without-gold) show a run summary (moves taken,
+  arrows used)? → A: Yes — include a lightweight summary (moves/turns taken, arrows used); it's
+  nearly free given the state is already tracked, and gives the modal a "beat your last run" hook
+  that fits a turn-based puzzle game. No broader scoring/leaderboard system.
+- Q: Should the configuration screen offer named difficulty presets (Easy/Normal/Hard) in addition to
+  free-form numeric fields? → A: No, not for this pass — free-form numeric config plus the FR-011
+  validation already lets the player dial difficulty (bigger board + more pits = harder); presets
+  would add UI/state complexity without much payoff for a solo project. Revisit later if wanted.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Play the canonical game on a modern Angular foundation (Priority: P1)
@@ -139,13 +152,12 @@ scenario and confirming it does not regress User Story 1's acceptance scenarios.
    all be legally placed), **Then** the form shows a validation error and does not navigate to the
    game screen. *(Beyond the brief; fixes `legacy-baseline.md` §7.3.)*
 2. **Given** a completed, lost, or exited-without-gold round, **When** the end-of-round modal
-   appears, **Then** it also shows a basic run summary (e.g. moves/turns taken, arrows used)
-   [NEEDS CLARIFICATION: is a scoring/summary system in scope for the first modernization pass, or a
-   later feature?].
-3. **Given** repeated play, **When** the player wants a different challenge, **Then** the settings
-   support both free-form numeric configuration and a small set of named difficulty presets (e.g.
-   Easy/Normal/Hard mapping to grid size + pit count) [NEEDS CLARIFICATION: are difficulty presets
-   desired, or is free-form numeric configuration sufficient?].
+   appears, **Then** it also shows a basic run summary: moves/turns taken and arrows used. *(Beyond
+   the brief; resolved 2026-07-27 — see Clarifications.)*
+
+**Explicitly deferred**: Named difficulty presets (e.g. Easy/Normal/Hard) were considered and
+deliberately deferred — see Clarifications. Free-form numeric configuration (already required by
+FR-007) plus its validation (FR-011) is the only configuration mechanism in this pass.
 
 ### Edge Cases
 
@@ -226,11 +238,15 @@ scenario and confirming it does not regress User Story 1's acceptance scenarios.
   direction collision logic (FR-004), and the exit/win/non-win outcome (FR-005) — independent of any
   UI framework changes. *(`game-rules.md` §7 "unit tests for all game components" — new, broadens the
   previous board-generation-only test requirement; Constitution Principle IV.)*
+- **FR-014**: The end-of-round modal (win, death, or exit-without-gold) MUST show a run summary:
+  the number of moves/turns taken and the number of arrows used during that round. *(Beyond the
+  brief; User Story 3; resolved 2026-07-27 — see Clarifications.)*
 
 ### Key Entities
 
-- **Board**: The grid of cells for one game round, plus the current hunter state and the running
-  perception/event log. Generated fresh per round from a `GameConfiguration`.
+- **Board**: The grid of cells for one game round, plus the current hunter state, the running
+  perception/event log, and counters for the run summary — moves/turns taken and arrows used
+  (FR-014). Generated fresh per round from a `GameConfiguration`.
 - **Cell**: One grid position — its walls, and whether it is the escape cell, holds gold, holds the
   Wumpus, holds a pit, is on the guaranteed clear path, currently has breeze/stench, and currently
   holds the hunter.
@@ -285,9 +301,9 @@ scenario and confirming it does not regress User Story 1's acceptance scenarios.
 - The existing Spanish-language player-facing copy (including the Spanish perception terms in
   `game-rules.md` §2) is retained as-is for User Story 1 (parity); any localization/i18n layer is out
   of scope unless a future spec adds it.
-- User Story 3's scoring/summary and difficulty-preset items are marked `NEEDS CLARIFICATION` and
-  MUST be resolved (accepted, deferred, or dropped) via `/speckit-clarify` or direct user confirmation
-  before `/speckit-plan` treats them as committed scope; they are not blockers for User Story 1 or 2.
+- User Story 3's scoring/summary and difficulty-preset questions were resolved in the Clarifications
+  section above (summary: in scope, FR-014; presets: explicitly deferred); neither was ever a blocker
+  for User Story 1 or 2.
 - Existing sprite assets (`src/assets/images/*`) are treated as placeholders to be replaced or
   substantially reworked under User Story 2, not as fixed final art; the hunter sprite/marker must
   additionally communicate facing direction, which the legacy assets do not.

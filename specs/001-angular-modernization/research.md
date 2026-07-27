@@ -121,9 +121,12 @@ starts, per Constitution Principle III (spec-driven delivery) and V (simplicity)
   because on a wall segment facing away from North (e.g. the top wall) the hunter would start facing
   directly into a wall, which is a poor first impression even if not strictly a rule violation.
 
-## 11. NEEDS CLARIFICATION items from spec.md carried forward
+## 11. User Story 3 clarifications (resolved 2026-07-27)
 
-- User Story 3 Scenario 4 (run summary/scoring) and Scenario 5 (difficulty presets) remain open.
-  They do not block Phase 1 design for User Stories 1–2 and are out of scope for the first
-  implementation pass unless resolved via `/speckit-clarify` before `/speckit-tasks` is run for
-  User Story 3.
+- Run summary/scoring: resolved **in scope** — a lightweight summary (moves/turns taken, arrows
+  used) on the end-of-round modal, now FR-014 in `spec.md`. No broader scoring/leaderboard system.
+- Difficulty presets: resolved **deferred** — free-form numeric configuration (FR-007) plus
+  validation (FR-011) is the only configuration mechanism for this pass; named presets add UI/state
+  complexity without much payoff for a solo project and can be revisited later.
+- See `spec.md` Clarifications section for the full Q&A. Neither item ever blocked Phase 1 design for
+  User Stories 1–2.

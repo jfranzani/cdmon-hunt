@@ -141,10 +141,9 @@ that satisfies the spec). `app.module.ts` / `configuration-screen.module.ts` / `
 
 ## Next Steps
 
-1. Run `/speckit-clarify` (optional) or get direct confirmation on the two `NEEDS CLARIFICATION`
-   items in `spec.md` (run summary/scoring, difficulty presets) before they're scheduled into
-   `tasks.md` for User Story 3. The exit-without-gold and initial-facing rulings in `spec.md`
-   Assumptions are already decided and do not need re-clarification unless the user objects to them.
+1. All open questions are resolved: the run-summary/scoring and difficulty-preset items are settled
+   in `spec.md`'s Clarifications section (2026-07-27), and the exit-without-gold and initial-facing
+   rulings are recorded in `spec.md` Assumptions. No outstanding `NEEDS CLARIFICATION` markers remain.
 2. Run `/speckit-tasks` to break User Stories 1–3 into independently-implementable tasks.
 3. Implementation starts with User Story 1 only (the migration MVP, scoped to `game-rules.md`) — User
    Stories 2 and 3 are not started until Story 1 is verified against `game-rules.md` per the
