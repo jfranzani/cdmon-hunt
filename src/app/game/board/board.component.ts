@@ -231,9 +231,13 @@ export class BoardComponent {
     const dx = shot.to.x - shot.from.x;
     const dy = shot.to.y - shot.from.y;
     const rotation = dx !== 0 || dy !== 0 ? this.rotationFromDelta(dx, dy) : ROTATION_DEG[facingAtShotTime];
-    const centerOffset = CELL_SIZE_PX / 2;
-    const startTransform = `translate(${shot.from.x * CELL_SIZE_PX + centerOffset}px, ${shot.from.y * CELL_SIZE_PX + centerOffset}px) rotate(${rotation}deg)`;
-    const endTransform = `translate(${shot.to.x * CELL_SIZE_PX + centerOffset}px, ${shot.to.y * CELL_SIZE_PX + centerOffset}px) rotate(${rotation}deg)`;
+    // The overlay box is a full cell (like the hunter's), with its glyph centered inside via the
+    // ::before's `inset` — so it's positioned the same way the hunter is, top-left-to-top-left,
+    // not offset by half a cell. (That offset was the bug: it put the box's corner, not its
+    // already-centered glyph, at the cell's center, visually pushing the arrow toward the grid
+    // lines instead of through the middle of each square.)
+    const startTransform = `translate(${shot.from.x * CELL_SIZE_PX}px, ${shot.from.y * CELL_SIZE_PX}px) rotate(${rotation}deg)`;
+    const endTransform = `translate(${shot.to.x * CELL_SIZE_PX}px, ${shot.to.y * CELL_SIZE_PX}px) rotate(${rotation}deg)`;
     const distanceCells = Math.max(Math.abs(dx), Math.abs(dy), 1);
 
     element.style.opacity = '1';
