@@ -1,43 +1,47 @@
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { GameConfiguration } from '../core/models/configuration';
+
+import { getDefaultGameConfiguration, GameConfiguration } from '../core/models/configuration';
 import { StorageService } from '../services/storage.service';
 
 @Component({
   selector: 'app-configuration-screen',
+  standalone: true,
+  imports: [ReactiveFormsModule],
   templateUrl: './configuration-screen.component.html',
-  styleUrls: ['./configuration-screen.component.scss'],
+  styleUrl: './configuration-screen.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfigurationScreenComponent {
-  settingsForm: FormGroup;
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly storage = inject(StorageService);
 
-  constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private storageService: StorageService
-  ) {
-    this.createReactiveForm();
-  }
+  readonly settingsForm = this.buildForm();
 
-  createReactiveForm() {
-    const gameSettings = this.storageService.getGameSettings();
-    this.settingsForm = this.fb.group({
-      colsX: [gameSettings?.cellsX || 8],
-      colsY: [gameSettings?.cellsY || 8],
-      pits: [gameSettings?.pits || 1],
-      arrows: [gameSettings?.arrows || 1],
+  private buildForm() {
+    const settings = this.storage.getGameSettings() ?? getDefaultGameConfiguration();
+    return this.fb.nonNullable.group({
+      cellsX: [settings.cellsX, [Validators.required]],
+      cellsY: [settings.cellsY, [Validators.required]],
+      pits: [settings.pits, [Validators.required]],
+      arrows: [settings.arrows, [Validators.required]],
     });
   }
 
-  onSubmit() {
-    const settings: GameConfiguration = {
-      cellsX: +this.settingsForm.get('colsX').value,
-      cellsY: +this.settingsForm.get('colsY').value,
-      pits: +this.settingsForm.get('pits').value,
-      arrows: +this.settingsForm.get('arrows').value,
+  onSubmit(): void {
+    if (this.settingsForm.invalid) {
+      return;
+    }
+    const raw = this.settingsForm.getRawValue();
+    const config: GameConfiguration = {
+      cellsX: Number(raw.cellsX),
+      cellsY: Number(raw.cellsY),
+      pits: Number(raw.pits),
+      arrows: Number(raw.arrows),
     };
-    this.storageService.saveGameSettings(settings);
+    this.storage.saveGameSettings(config);
     this.router.navigate(['/game']);
   }
 }

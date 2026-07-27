@@ -1,157 +1,151 @@
-export class Player {
-  arrows: number;
-  hasGold: boolean;
-  isAlive: boolean;
-  name?: string;
-  escaped?: boolean;
-  constructor(name = 'John Doe', arrows = 1, hasGold = false, isAlive = true) {
-    Object.assign(this, { name, arrows, hasGold, isAlive });
-  }
+/**
+ * The hunter's heading, also used as the movement/shoot axis (game-rules.md §3).
+ */
+export const Direction = {
+  North: 'North',
+  East: 'East',
+  South: 'South',
+  West: 'West',
+} as const;
+export type Direction = (typeof Direction)[keyof typeof Direction];
+
+export const ALL_DIRECTIONS: readonly Direction[] = [
+  Direction.North,
+  Direction.East,
+  Direction.South,
+  Direction.West,
+];
+
+export const TURN_LEFT: Readonly<Record<Direction, Direction>> = {
+  [Direction.North]: Direction.West,
+  [Direction.West]: Direction.South,
+  [Direction.South]: Direction.East,
+  [Direction.East]: Direction.North,
+};
+
+export const TURN_RIGHT: Readonly<Record<Direction, Direction>> = {
+  [Direction.North]: Direction.East,
+  [Direction.East]: Direction.South,
+  [Direction.South]: Direction.West,
+  [Direction.West]: Direction.North,
+};
+
+export interface Wall {
+  readonly top: boolean;
+  readonly bottom: boolean;
+  readonly left: boolean;
+  readonly right: boolean;
 }
 
-export class Board {
-  cells: Cell[][];
-  player: Player;
-  log: CellLog[];
-  diedReason: string;
-  availableDirections: AvailableDirections;
-  constructor(cells: Cell[][] = [], log = [], player = new Player()) {
-    this.cells = cells;
-    this.log = log;
-    this.player = player;
-  }
+export function isWall(wall: Wall): boolean {
+  return wall.top || wall.bottom || wall.left || wall.right;
 }
 
-export class Cell {
-  hasPlayer: boolean;
-  number: number;
-  wall: Wall;
+export interface Cell {
+  readonly number: number;
+  readonly coordinateX: number;
+  readonly coordinateY: number;
+  readonly wall: Wall;
   isEscape: boolean;
   isPit: boolean;
   hasGold: boolean;
   isWumpus: boolean;
   isClearPath: boolean;
-  coordinateX: number;
-  coordinateY: number;
-  status: PathFinderStatus;
   hasBreeze: boolean;
   hasStink: boolean;
+  hasPlayer: boolean;
+}
 
-  constructor(
+export function createCell(number: number, coordinateY: number, coordinateX: number, wall: Wall): Cell {
+  return {
     number,
-    coordinateY,
     coordinateX,
-    wall = new Wall(),
-    isEscape = false,
-    hasGold = false,
-    isPit = false,
-    isWumpus = false
-  ) {
-    Object.assign(this, {
-      number,
-      coordinateX,
-      coordinateY,
-      wall,
-      isEscape,
-      hasGold,
-      isPit,
-      isWumpus,
-    });
-  }
+    coordinateY,
+    wall,
+    isEscape: false,
+    isPit: false,
+    hasGold: false,
+    isWumpus: false,
+    isClearPath: false,
+    hasBreeze: false,
+    hasStink: false,
+    hasPlayer: false,
+  };
 }
 
-export class Wall {
-  right: boolean;
-  left: boolean;
-  top: boolean;
-  bottom: boolean;
-  constructor(right = false, left = false, top = false, bottom = false) {
-    this.right = right;
-    this.left = left;
-    this.top = top;
-    this.bottom = bottom;
-  }
+/**
+ * The outcome of using the "exit" action (game-rules.md §3d, §4). `null` while the round is
+ * still in progress or ended in death.
+ */
+export const ExitOutcome = {
+  Won: 'Won',
+  ExitedWithoutGold: 'ExitedWithoutGold',
+} as const;
+export type ExitOutcome = (typeof ExitOutcome)[keyof typeof ExitOutcome];
+
+export interface Hunter {
+  arrows: number;
+  hasGold: boolean;
+  isAlive: boolean;
+  facing: Direction;
+  exitOutcome: ExitOutcome | null;
+  /** Run-summary counters for FR-014. */
+  movesTaken: number;
+  arrowsUsed: number;
 }
 
-export interface AvailableDirections {
-  north: boolean;
-  south: boolean;
-  east: boolean;
-  west: boolean;
+export function createHunter(arrows: number, facing: Direction): Hunter {
+  return {
+    arrows,
+    hasGold: false,
+    isAlive: true,
+    facing,
+    exitOutcome: null,
+    movesTaken: 0,
+    arrowsUsed: 0,
+  };
+}
+
+/**
+ * One of the six `game-rules.md` §2 perceptions, plus the handful of non-perception outcomes
+ * (death causes, empty cell, no-arrows guard) the UI also needs to report. Kept as a single
+ * discriminated set — see `MessagesService` — so every case has exactly one message string,
+ * enforced by the TypeScript compiler (FR-006).
+ */
+export const Perception = {
+  Stench: 'Stench',
+  Breeze: 'Breeze',
+  Glimmer: 'Glimmer',
+  Choque: 'Choque',
+  Grito: 'Grito',
+  ArrowHitWall: 'ArrowHitWall',
+  PitDeath: 'PitDeath',
+  WumpusDeath: 'WumpusDeath',
+  EmptyCell: 'EmptyCell',
+  NoArrows: 'NoArrows',
+  Won: 'Won',
+  ExitedWithoutGold: 'ExitedWithoutGold',
+  Start: 'Start',
+} as const;
+export type Perception = (typeof Perception)[keyof typeof Perception];
+
+export interface LogEntry {
+  readonly message: string;
+  readonly perception: Perception;
+}
+
+export interface Board {
+  cells: Cell[][];
+  hunter: Hunter;
+  log: LogEntry[];
+  diedReason: string | null;
+}
+
+export function createBoard(cells: Cell[][], hunter: Hunter): Board {
+  return { cells, hunter, log: [], diedReason: null };
 }
 
 export interface BoardCoordinate {
-  X: number;
-  Y: number;
-}
-
-export interface LocationPath {
-  distanceFromTop: number;
-  distanceFromLeft: number;
-  path: BoardCoordinate[];
-  status: PathFinderStatus;
-}
-
-export interface CellLog {
-  message: string;
-  class?: string;
-}
-
-export interface ArrowLog {
-  hitWumpus: boolean;
-  message: string;
-}
-
-export enum SearcheableCellAttr {
-  isEscape = 'isEscape',
-  isPit = 'isPit',
-  isWumpus = 'isWumpus',
-  hasPlayer = 'hasPlayer',
-}
-
-export enum CellAttributeToActive {
-  hasBreeze = 'hasBreeze',
-  hasStink = 'hasStink',
-}
-
-export enum PathFinderStatus {
-  Start,
-  Gold,
-  Valid,
-  Invalid,
-  Blocked,
-  Empty,
-  Unknown,
-}
-
-export enum AxisDirection {
-  North,
-  South,
-  East,
-  West,
-}
-
-export enum ConsoleMessages {
-  wumpusWon,
-  wumpusDead,
-  wumpusScream,
-  wumpusStink,
-  pitDead,
-  pitBreeze,
-  wallAhead,
-  arrowFired,
-  arrowHitWall,
-  arrowHitWumpus,
-  noMoreArrows,
-  goldenFound,
-  playerDead,
-  emptyCell,
-  wonGame,
-}
-
-export enum KEY_CODE {
-  RIGHT_ARROW = 'ArrowRight',
-  LEFT_ARROW = 'ArrowLeft',
-  UP_ARROW = 'ArrowUp',
-  DOWN_ARROW = 'ArrowDown',
+  readonly x: number;
+  readonly y: number;
 }

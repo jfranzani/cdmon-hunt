@@ -1,135 +1,124 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { Board } from 'src/app/core/models/game';
-import { GameService } from 'src/app/services/game.service';
-import { PathCreatorService } from 'src/app/services/path-creator.service';
-import { PlayerService } from 'src/app/services/player.service';
-import { StorageService } from 'src/app/services/storage.service';
-import * as helper from 'src/app/core/helpers/helper-functions';
+import { provideRouter, Router } from '@angular/router';
 
+import { getDefaultGameConfiguration } from '../../core/models/configuration';
+import {
+  Board,
+  Cell,
+  Direction,
+  Wall,
+  createBoard,
+  createCell,
+  createHunter,
+} from '../../core/models/game';
+import { GameService } from '../../services/game.service';
+import { StorageService } from '../../services/storage.service';
 import { BoardComponent } from './board.component';
 
+function buildGrid(sizeX: number, sizeY: number): Cell[][] {
+  let number = 1;
+  const cells: Cell[][] = [];
+  for (let y = 0; y < sizeY; y++) {
+    const row: Cell[] = [];
+    for (let x = 0; x < sizeX; x++) {
+      const wall: Wall = {
+        top: y === 0,
+        bottom: y === sizeY - 1,
+        left: x === 0,
+        right: x === sizeX - 1,
+      };
+      row.push(createCell(number++, y, x, wall));
+    }
+    cells.push(row);
+  }
+  return cells;
+}
+
+function buildBoard(): Board {
+  const cells = buildGrid(3, 3);
+  cells[0][0].isEscape = true;
+  cells[1][1].hasPlayer = true;
+  return createBoard(cells, createHunter(1, Direction.East));
+}
+
 describe('BoardComponent', () => {
-  let component: BoardComponent;
   let fixture: ComponentFixture<BoardComponent>;
+  let component: BoardComponent;
   let gameService: GameService;
-  let storageService: StorageService;
-  let pathService: PathCreatorService;
-  let playerService: PlayerService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BoardComponent],
-      imports: [RouterTestingModule],
+      imports: [BoardComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
+    gameService = TestBed.inject(GameService);
+    spyOn(gameService, 'generateBoard').and.callFake(() => buildBoard());
+    spyOn(TestBed.inject(StorageService), 'getGameSettings').and.returnValue(
+      getDefaultGameConfiguration(),
+    );
+
     fixture = TestBed.createComponent(BoardComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('generates a board and logs the start message on init', () => {
+    expect(component.board()).toBeTruthy();
+    expect(component.board()!.log[0].perception).toBe('Start');
   });
 
-  describe('ngOninit', () => {
-    it('should call startGame function', () => {
-      spyOn(component, 'startGame');
-      component.ngOnInit();
-      expect(component.startGame).toHaveBeenCalled();
-    });
+  it('advance() moves the hunter and re-renders the board grid', () => {
+    component.advance();
+    expect(component.board()!.cells[1][2].hasPlayer).toBeTrue();
   });
 
-  describe('startGame', () => {
-    it('should call all the functions that starts the game and set the initial log', () => {
-      //Arrange
-      spyOn(component, 'createBoardMatrix');
-      spyOn(component, 'addPlayer');
-      spyOn(component, 'checkBoardStatus');
-      component.board = new Board();
-      component.board.log = [];
-      //Action
-      component.startGame();
-      // Assert
-      expect(component.createBoardMatrix).toHaveBeenCalled();
-      expect(component.addPlayer).toHaveBeenCalled();
-      expect(component.checkBoardStatus).toHaveBeenCalled();
-      expect(component.board.log[0]).toEqual({
-        message: 'Entras a la mazmorra...',
-        class: 'start',
-      });
-    });
+  it('turnLeft()/turnRight() change facing without moving', () => {
+    component.turnRight();
+    expect(component.board()!.hunter.facing).toBe(Direction.South);
+    component.turnLeft();
+    component.turnLeft();
+    expect(component.board()!.hunter.facing).toBe(Direction.North);
   });
 
-  describe('createBoardMatrix', () => {
-    it('should call all the functions in game service that set up the board for the first time', () => {
-      //Arrange
-      gameService = TestBed.inject(GameService);
-      storageService = TestBed.inject(StorageService);
-      pathService = TestBed.inject(PathCreatorService);
-      spyOn(storageService, 'getGameSettings').and.returnValue({
-        cellsX: 8,
-        cellsY: 8,
-        pits: 1,
-        arrows: 1,
-      });
-      spyOn(gameService, 'createEmptyBoard').and.returnValue(new Board());
-      spyOn(gameService, 'addEscapeCell');
-      spyOn(gameService, 'addGold');
-      spyOn(gameService, 'addWumpus');
-      spyOn(pathService, 'createCleanPathToGold');
-      spyOn(gameService, 'addPits');
-      //Action
-      component.createBoardMatrix();
-      // Assert
-      expect(storageService.getGameSettings).toHaveBeenCalled();
-      expect(gameService.createEmptyBoard).toHaveBeenCalled();
-      expect(gameService.addEscapeCell).toHaveBeenCalled();
-      expect(gameService.addEscapeCell).toHaveBeenCalled();
-      expect(gameService.addGold).toHaveBeenCalled();
-      expect(gameService.addWumpus).toHaveBeenCalled();
-      expect(gameService.addPits).toHaveBeenCalled();
-      expect(pathService.createCleanPathToGold).toHaveBeenCalled();
-    });
+  it('exit is disabled off the escape cell and enabled once there', () => {
+    expect(component.canExit()).toBeFalse();
+
+    component.turnLeft(); // face North
+    component.advance(); // (1,1) -> (1,0)
+    component.turnLeft(); // face West
+    component.advance(); // (1,0) -> (0,0), the escape cell
+
+    expect(component.canExit()).toBeTrue();
   });
 
-  describe('checkBoardStatus', () => {
-    it('should get PlayerCell and update the status', () => {
-      //Arrange
-      playerService = TestBed.inject(PlayerService);
-      spyOn(playerService, 'getPlayerCell');
-      spyOn(helper, 'getAvailableDirections');
-      //Action
-      component.checkBoardStatus();
-      // Assert
-      expect(playerService.getPlayerCell).toHaveBeenCalled();
-      expect(helper.getAvailableDirections).toHaveBeenCalled();
-    });
+  it('ending the round (death) surfaces isGameOver() and disables further actions', () => {
+    component.board()!.cells[1][2].isWumpus = true;
+    component.advance(); // walks east into the Wumpus
+
+    expect(component.isGameOver()).toBeTrue();
+    expect(component.endOfRoundTitle()).toBe('HAS MUERTO');
+
+    const beforeMoves = component.board()!.hunter.movesTaken;
+    component.advance(); // further actions are ignored once the round is over
+    expect(component.board()!.hunter.movesTaken).toBe(beforeMoves);
   });
 
-  describe('addPlayer', () => {
-    it('should call addPlayerToItsInitialCell from playerService', () => {
-      //Arrange
-      playerService = TestBed.inject(PlayerService);
-      spyOn(playerService, 'addPlayerToItsInitialCell');
-      //Action
-      component.addPlayer();
-      // Assert
-      expect(playerService.addPlayerToItsInitialCell).toHaveBeenCalled();
-    });
+  it('playAgain() starts a fresh round', () => {
+    component.board()!.cells[1][2].isPit = true;
+    component.advance();
+    expect(component.isGameOver()).toBeTrue();
+
+    component.playAgain();
+
+    expect(component.isGameOver()).toBeFalse();
+    expect(component.board()!.hunter.isAlive).toBeTrue();
   });
 
-  describe('move function', () => {
-    it('should win the match', () => {
-      // //Arrange
-      // playerService = TestBed.inject(PlayerService);
-      // spyOn(playerService, 'addPlayerToItsInitialCell');
-      // //Action
-      // component.addPlayer();
-      // // Assert
-      // expect(playerService.addPlayerToItsInitialCell).toHaveBeenCalled();
-    });
+  it('goToSettings() navigates back to the configuration screen', () => {
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    component.goToSettings();
+    expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
 });

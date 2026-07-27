@@ -1,215 +1,133 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+
 import {
   getAdjacentCell,
   getAvailableCells,
-  getEscapeRandomNumber,
+  getEscapeRandomIndex,
   isCellAlreadyTaken,
-  isWall,
 } from '../core/helpers/helper-functions';
 import { GameConfiguration } from '../core/models/configuration';
 import {
-  AxisDirection,
+  ALL_DIRECTIONS,
   Board,
   Cell,
-  CellAttributeToActive,
+  Direction,
   Wall,
+  createBoard,
+  createCell,
+  createHunter,
 } from '../core/models/game';
+import { PathCreatorService } from './path-creator.service';
 
+type PerceptionFlag = 'hasBreeze' | 'hasStink';
+
+/**
+ * Board generation: escape cell on a wall, gold and Wumpus on distinct available cells, a
+ * guaranteed clear path from escape to gold, and pits only where they can't block that path or
+ * sit on the escape/gold/Wumpus cell — legacy-baseline.md §2, game-rules.md §5 (FR-001).
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class GameService {
-  private _board: Board;
-  constructor() {}
+  private readonly pathCreator = inject(PathCreatorService);
 
-  get board() {
-    return this._board;
-  }
-  set board(board: Board) {
-    this._board = board;
+  generateBoard(config: GameConfiguration): Board {
+    const cells = this.createEmptyGrid(config.cellsX, config.cellsY);
+
+    const escapeCell = this.placeEscapeCell(cells);
+    const goldCell = this.pickAvailableCell(cells);
+    goldCell.hasGold = true;
+
+    const wumpusCell = this.pickAvailableCell(cells);
+    wumpusCell.isWumpus = true;
+    this.activateAdjacentPerception(cells, wumpusCell, 'hasStink');
+
+    this.pathCreator.markClearPath(cells, escapeCell);
+
+    for (let i = 0; i < config.pits; i++) {
+      const pitCell = this.pickAvailableCell(cells);
+      pitCell.isPit = true;
+    }
+    for (const row of cells) {
+      for (const cell of row) {
+        if (cell.isPit) {
+          this.activateAdjacentPerception(cells, cell, 'hasBreeze');
+        }
+      }
+    }
+
+    escapeCell.hasPlayer = true;
+    const hunter = createHunter(config.arrows, this.computeInitialFacing(escapeCell.wall));
+
+    return createBoard(cells, hunter);
   }
 
-  getDefaultGameSettings(): GameConfiguration {
+  private createEmptyGrid(cellsX: number, cellsY: number): Cell[][] {
+    const cells: Cell[][] = [];
+    let number = 1;
+    for (let y = 0; y < cellsY; y++) {
+      const row: Cell[] = [];
+      for (let x = 0; x < cellsX; x++) {
+        row.push(createCell(number++, y, x, this.createWall(cellsX, cellsY, x, y)));
+      }
+      cells.push(row);
+    }
+    return cells;
+  }
+
+  private createWall(cellsX: number, cellsY: number, x: number, y: number): Wall {
     return {
-      cellsX: 8,
-      cellsY: 8,
-      pits: 1,
-      arrows: 1,
+      top: y === 0,
+      bottom: y === cellsY - 1,
+      left: x === 0,
+      right: x === cellsX - 1,
     };
   }
 
-  createEmptyBoard(gameSetting: GameConfiguration): Board {
-    const cells: Cell[][] = [];
-    const colsY = +gameSetting.cellsY;
-    const colsX = +gameSetting.cellsX;
-    let board: Board = new Board();
-    board.player.arrows = gameSetting.arrows;
-    let wall: Wall;
-    let number = 1;
-    for (let i: number = 0; i < colsX; i++) {
-      cells[i] = [];
-      for (let j: number = 0; j < colsY; j++) {
-        wall = this.createWall(colsY, colsX, i, j);
-        cells[i][j] = new Cell(number, i, j, wall);
-        number++;
-      }
-    }
-    board.cells = cells;
-    this.board = board;
-    return board;
-  }
-
-  addEscapeCell(cells: Cell[][]) {
-    let escapeIndex = getEscapeRandomNumber(cells.length, cells[0].length);
+  private placeEscapeCell(cells: Cell[][]): Cell {
+    const escapeIndex = getEscapeRandomIndex(cells[0].length, cells.length);
     let wallIndex = 0;
-    for (let i = 0; i < cells.length; i++) {
-      for (let j = 0; j < cells[i].length; j++) {
-        let cube = cells[i][j];
-        if (isWall(cube.wall)) {
+    for (const row of cells) {
+      for (const cell of row) {
+        if (this.isWallCell(cell.wall)) {
           if (wallIndex === escapeIndex) {
-            cube.isEscape = true;
-            return;
-          } else {
-            wallIndex++;
+            cell.isEscape = true;
+            return cell;
           }
+          wallIndex++;
         }
+      }
+    }
+    throw new Error('No wall cell available to place the escape cell.');
+  }
+
+  private isWallCell(wall: Wall): boolean {
+    return wall.top || wall.bottom || wall.left || wall.right;
+  }
+
+  private pickAvailableCell(cells: Cell[][]): Cell {
+    const available = getAvailableCells(cells);
+    if (available.length === 0) {
+      throw new Error('No available cells left on the board for this configuration.');
+    }
+    return available[Math.floor(Math.random() * available.length)];
+  }
+
+  private activateAdjacentPerception(cells: Cell[][], cell: Cell, flag: PerceptionFlag): void {
+    for (const direction of ALL_DIRECTIONS) {
+      const neighbor = getAdjacentCell(cells, cell, direction);
+      if (neighbor && !isCellAlreadyTaken(neighbor)) {
+        neighbor[flag] = true;
       }
     }
   }
 
-  /**
-   * Create the walls of the board
-   * @param totalColumns
-   * @param totalRows
-   * @param indexRow
-   * @param indexCol
-   */
-  createWall(
-    totalColumns: number,
-    totalRows: number,
-    indexRow: number,
-    indexCol: number
-  ) {
-    let wall = new Wall();
-    // Top Wall
-    if (indexRow === 0) {
-      wall.top = true;
-    }
-    // Bottom Wall
-    if (indexRow === totalRows - 1) {
-      wall.bottom = true;
-    }
-    // Left Wall
-    if (indexCol === 0) {
-      wall.left = true;
-    }
-    // Right Wall
-    if (indexCol === totalColumns - 1) {
-      wall.right = true;
-    }
-    return wall;
-  }
-
-  /**
-   * Pits
-   * @param cells
-   * @param amountOfPits
-   */
-  addPits(cells: Cell[][], amountOfPits: number) {
-    for (let i = 0; i < amountOfPits; i++) {
-      this.addPit(cells);
-    }
-    this.addBreezeToPits(cells);
-  }
-
-  /**
-   * Add the cell gold
-   * @param cells
-   */
-  addGold(cells: Cell[][]): void {
-    let availableCells = getAvailableCells(cells);
-    let goldNumber = Math.floor(Math.random() * availableCells.length);
-    let selectedCell = availableCells.find(
-      (cell, index) => index === goldNumber
-    );
-    selectedCell.hasGold = true;
-  }
-
-  /**
-   * Add the wumpus
-   * @param cells
-   */
-  addWumpus(cells: Cell[][]): void {
-    let availableCells = getAvailableCells(cells);
-    let wumpusNumber = Math.floor(Math.random() * availableCells.length);
-    let selectedCell = availableCells.find(
-      (cell, index) => index === wumpusNumber
-    );
-    selectedCell.isWumpus = true;
-    this.activeAdjacentProps(
-      cells,
-      selectedCell,
-      CellAttributeToActive.hasStink
-    );
-  }
-
-  /**
-   * Add a Pit
-   * @param cells
-   */
-  addPit(cells: Cell[][]): void {
-    let availableCells = getAvailableCells(cells);
-    let pitNumber = Math.floor(Math.random() * availableCells.length);
-    let selectedCell = availableCells.find(
-      (cell, index) => index === pitNumber
-    );
-    selectedCell.isPit = true;
-  }
-
-  addBreezeToPits(cells: Cell[][]) {
-    let availableCells = [];
-    for (let i: number = 0; i < cells.length; i++) {
-      for (let j: number = 0; j < cells[i].length; j++) {
-        let currentCell = cells[i][j];
-        if (currentCell.isPit) {
-          this.activeAdjacentProps(
-            cells,
-            currentCell,
-            CellAttributeToActive.hasBreeze
-          );
-        }
-      }
-    }
-    return availableCells;
-  }
-
-  /**
-   * Function to set to true any prop for any adjacent
-   * free cell
-   * @param cells
-   * @param selectedCell
-   * @param attributeToActivate
-   */
-  activeAdjacentProps(
-    cells: Cell[][],
-    selectedCell: Cell,
-    attributeToActivate: CellAttributeToActive
-  ) {
-    let northCell = getAdjacentCell(cells, selectedCell, AxisDirection.North);
-    let southCell = getAdjacentCell(cells, selectedCell, AxisDirection.South);
-    let eastCell = getAdjacentCell(cells, selectedCell, AxisDirection.East);
-    let westCell = getAdjacentCell(cells, selectedCell, AxisDirection.West);
-    if (northCell && !isCellAlreadyTaken(northCell)) {
-      northCell[attributeToActivate] = true;
-    }
-    if (southCell && !isCellAlreadyTaken(southCell)) {
-      southCell[attributeToActivate] = true;
-    }
-    if (eastCell && !isCellAlreadyTaken(eastCell)) {
-      eastCell[attributeToActivate] = true;
-    }
-    if (westCell && !isCellAlreadyTaken(westCell)) {
-      westCell[attributeToActivate] = true;
-    }
+  /** research.md §10: face into the board from the escape cell; top/bottom wall wins on a corner. */
+  private computeInitialFacing(wall: Wall): Direction {
+    if (wall.top) return Direction.South;
+    if (wall.bottom) return Direction.North;
+    if (wall.left) return Direction.East;
+    return Direction.West;
   }
 }

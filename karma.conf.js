@@ -1,32 +1,28 @@
-// Karma configuration file, see link for more information
-// https://karma-runner.github.io/1.0/config/configuration-file.html
-
+// Providing a custom `karmaConfig` to @angular/build:karma replaces its built-in base config
+// entirely (it only supplies frameworks/plugins/reporters when no karmaConfig is given), so this
+// file has to restate that base and layer on the one thing it actually exists for:
+// `ChromeHeadlessCI`, a launcher with --no-sandbox for running as root (CI containers, this
+// repo's sandboxed dev environment) — Chrome refuses to sandbox itself as root by default
+// (crbug.com/638180). Point `CHROME_BIN` at your Chrome/Chromium binary via the environment when
+// using it; nothing here assumes a specific machine's install path.
 module.exports = function (config) {
   config.set({
     basePath: '',
-    frameworks: ['jasmine', '@angular-devkit/build-angular'],
+    frameworks: ['jasmine'],
     plugins: [
       require('karma-jasmine'),
       require('karma-chrome-launcher'),
       require('karma-jasmine-html-reporter'),
-      require('karma-coverage-istanbul-reporter'),
-      require('@angular-devkit/build-angular/plugins/karma')
+      require('karma-coverage'),
     ],
-    client: {
-      clearContext: false // leave Jasmine Spec Runner output visible in browser
+    jasmineHtmlReporter: {
+      suppressAll: true,
     },
-    coverageIstanbulReporter: {
-      dir: require('path').join(__dirname, './coverage/cdmon-hunt-wumpus'),
-      reports: ['html', 'lcovonly', 'text-summary'],
-      fixWebpackSourcePaths: true
+    customLaunchers: {
+      ChromeHeadlessCI: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox', '--disable-gpu'],
+      },
     },
-    reporters: ['progress', 'kjhtml'],
-    port: 9876,
-    colors: true,
-    logLevel: config.LOG_INFO,
-    autoWatch: true,
-    browsers: ['Chrome'],
-    singleRun: false,
-    restartOnFileChange: true
   });
 };

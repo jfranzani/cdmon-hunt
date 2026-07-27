@@ -1,73 +1,84 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
-import { StorageService } from '../services/storage.service';
+import { provideRouter, Router } from '@angular/router';
 
+import { StorageService } from '../services/storage.service';
 import { ConfigurationScreenComponent } from './configuration-screen.component';
 
 describe('ConfigurationScreenComponent', () => {
-  let component: ConfigurationScreenComponent;
   let fixture: ComponentFixture<ConfigurationScreenComponent>;
+  let component: ConfigurationScreenComponent;
   let storageService: StorageService;
-  let route: Router;
+  let router: Router;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ConfigurationScreenComponent],
-      imports: [FormsModule, ReactiveFormsModule, RouterTestingModule],
+      imports: [ConfigurationScreenComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
+
+    storageService = TestBed.inject(StorageService);
+    router = TestBed.inject(Router);
   });
 
-  beforeEach(() => {
+  it('pre-fills the form from previously saved settings', () => {
+    spyOn(storageService, 'getGameSettings').and.returnValue({
+      cellsX: 6,
+      cellsY: 7,
+      pits: 2,
+      arrows: 3,
+    });
+
     fixture = TestBed.createComponent(ConfigurationScreenComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+
+    expect(component.settingsForm.getRawValue()).toEqual({
+      cellsX: 6,
+      cellsY: 7,
+      pits: 2,
+      arrows: 3,
+    });
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('defaults to a square board when nothing was saved (spec.md Assumptions)', () => {
+    spyOn(storageService, 'getGameSettings').and.returnValue(null);
+
+    fixture = TestBed.createComponent(ConfigurationScreenComponent);
+    component = fixture.componentInstance;
+
+    const value = component.settingsForm.getRawValue();
+    expect(value.cellsX).toBe(value.cellsY);
   });
 
-  it('should create the reactive form with correct values', () => {
-    // Arrange
-    storageService = TestBed.inject(StorageService);
-    route = TestBed.inject(Router);
-    spyOn(storageService, 'getGameSettings').and.returnValue({
-      cellsX: 8,
-      cellsY: 8,
-      pits: 1,
+  it('saves the settings and navigates to /game on submit', () => {
+    spyOn(storageService, 'getGameSettings').and.returnValue(null);
+    fixture = TestBed.createComponent(ConfigurationScreenComponent);
+    component = fixture.componentInstance;
+
+    spyOn(storageService, 'saveGameSettings');
+    spyOn(router, 'navigate');
+
+    component.settingsForm.setValue({ cellsX: 5, cellsY: 5, pits: 2, arrows: 1 });
+    component.onSubmit();
+
+    expect(storageService.saveGameSettings).toHaveBeenCalledWith({
+      cellsX: 5,
+      cellsY: 5,
+      pits: 2,
       arrows: 1,
     });
-    // Action
-    component.createReactiveForm();
-    // Assert
-    expect(component.settingsForm.controls['colsX'].value).toEqual(8);
-    expect(component.settingsForm.controls['colsY'].value).toEqual(8);
-    expect(component.settingsForm.controls['pits'].value).toEqual(1);
-    expect(component.settingsForm.controls['arrows'].value).toEqual(1);
+    expect(router.navigate).toHaveBeenCalledWith(['/game']);
   });
 
-  it('should submit with correct values, call saveGameSetting and navigate', () => {
-    // Arrange
-    storageService = TestBed.inject(StorageService);
-    route = TestBed.inject(Router);
-    spyOn(storageService, 'saveGameSettings');
-    spyOn(route, 'navigate');
-    component.settingsForm.controls['colsX'].setValue('1');
-    component.settingsForm.controls['colsY'].setValue('2');
-    component.settingsForm.controls['pits'].setValue('3');
-    component.settingsForm.controls['arrows'].setValue('4');
-    // Action
-    component.onSubmit();
-    // Assert
-    expect(storageService.saveGameSettings).toHaveBeenCalledWith({
-      cellsX: 1,
-      cellsY: 2,
-      pits: 3,
-      arrows: 4,
-    });
+  it('does not submit an invalid form', () => {
+    spyOn(storageService, 'getGameSettings').and.returnValue(null);
+    fixture = TestBed.createComponent(ConfigurationScreenComponent);
+    component = fixture.componentInstance;
 
-    expect(route.navigate).toHaveBeenCalledWith(['/game']);
+    spyOn(storageService, 'saveGameSettings');
+    component.settingsForm.controls.cellsX.setValue(null as unknown as number);
+
+    component.onSubmit();
+
+    expect(storageService.saveGameSettings).not.toHaveBeenCalled();
   });
 });

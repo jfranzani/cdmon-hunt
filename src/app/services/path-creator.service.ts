@@ -1,185 +1,97 @@
 import { Injectable } from '@angular/core';
+
 import {
-  findSpecificCell,
+  getAdjacentCoordinate,
   isCellAlreadyTaken,
   isCoordinateInvalid,
 } from '../core/helpers/helper-functions';
-import {
-  AxisDirection,
-  BoardCoordinate,
-  Cell,
-  LocationPath,
-  PathFinderStatus,
-  SearcheableCellAttr,
-} from '../core/models/game';
+import { ALL_DIRECTIONS, BoardCoordinate, Cell } from '../core/models/game';
 
+function coordinateKey(coordinate: BoardCoordinate): string {
+  return `${coordinate.x},${coordinate.y}`;
+}
+
+/**
+ * Finds the shortest orthogonal path from the escape cell to the gold cell and marks the
+ * intermediate cells `isClearPath`, so board generation can guarantee pits never block it
+ * (game-rules.md §5 / legacy-baseline.md §2).
+ *
+ * Rewritten per research.md §11 / Constitution Principle VII: the original hand-written BFS set
+ * a "visited" flag that was never actually read, so it could re-enqueue the same cell an unbounded
+ * number of times on open/large boards. This version tracks visited cells explicitly, enqueues
+ * with an index cursor instead of `Array.shift()`, and reconstructs the path via parent pointers
+ * instead of copying a growing path array into every queued entry.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class PathCreatorService {
-  constructor() {}
-
   /**
-   * Create a Path to gold to make sure that the player
-   * will be able to reach the gold and go back
-   * without being blocked for pits or the Wumpus
-   * @param cells
+   * Returns the path from (but excluding) the escape cell to (and including) the gold cell, or
+   * `null` if no path exists.
    */
-  createCleanPathToGold(cells: Cell[][]) {
-    let escapeCell = findSpecificCell(cells, SearcheableCellAttr.isEscape);
-    let path = this.findPath(cells, escapeCell);
-    for (let coordinate of path.slice(0, path.length - 1)) {
-      let cube = cells[coordinate.Y][coordinate.X];
-      cube.isClearPath = true;
-    }
-  }
+  findClearPath(cells: Cell[][], escapeCell: Cell): BoardCoordinate[] | null {
+    const boardSizeY = cells.length;
+    const boardSizeX = cells[0].length;
+    const start: BoardCoordinate = { x: escapeCell.coordinateX, y: escapeCell.coordinateY };
 
-  findPath(board: Cell[][], escapeCell: Cell): BoardCoordinate[] {
-    let distanceFromTop = escapeCell.coordinateY;
-    let distanceFromLeft = escapeCell.coordinateX;
+    const visited = new Set<string>([coordinateKey(start)]);
+    const parents = new Map<string, BoardCoordinate | null>([[coordinateKey(start), null]]);
+    const queue: BoardCoordinate[] = [start];
+    let head = 0;
 
-    // Each "location" will store its coordinates
-    // and the shortest path required to arrive there
-    let location: LocationPath = {
-      distanceFromTop: distanceFromTop,
-      distanceFromLeft: distanceFromLeft,
-      path: [],
-      status: PathFinderStatus.Start,
-    };
+    while (head < queue.length) {
+      const current = queue[head++];
+      const currentCell = cells[current.y][current.x];
 
-    // Initialize the queue with the start location already inside
-    let queue = [location];
-
-    // Loop through the board searching for the gold
-    while (queue.length > 0) {
-      // Take the first location off the queue
-      let currentLocation = queue.shift();
-
-      let newLocation;
-      // Explore North
-      newLocation = this.exploreInDirection(
-        currentLocation,
-        AxisDirection.North,
-        board
-      );
-      if (newLocation.status === PathFinderStatus.Gold) {
-        return newLocation.path;
+      if (currentCell.hasGold) {
+        return this.reconstructPath(parents, current).slice(1);
       }
-      this.checkPushLocationToQueue(newLocation, queue);
 
-      // Explore East
-      newLocation = this.exploreInDirection(
-        currentLocation,
-        AxisDirection.East,
-        board
-      );
-      if (newLocation.status === PathFinderStatus.Gold) {
-        return newLocation.path;
+      for (const direction of ALL_DIRECTIONS) {
+        const next = getAdjacentCoordinate(direction, current);
+        if (isCoordinateInvalid(next, boardSizeX, boardSizeY)) {
+          continue;
+        }
+        const nextKey = coordinateKey(next);
+        if (visited.has(nextKey)) {
+          continue;
+        }
+        const nextCell = cells[next.y][next.x];
+        if (!nextCell.hasGold && isCellAlreadyTaken(nextCell)) {
+          continue;
+        }
+        visited.add(nextKey);
+        parents.set(nextKey, current);
+        queue.push(next);
       }
-      this.checkPushLocationToQueue(newLocation, queue);
-
-      // Explore South
-      newLocation = this.exploreInDirection(
-        currentLocation,
-        AxisDirection.South,
-        board
-      );
-      if (newLocation.status === PathFinderStatus.Gold) {
-        return newLocation.path;
-      }
-      this.checkPushLocationToQueue(newLocation, queue);
-
-      // Explore West
-      newLocation = this.exploreInDirection(
-        currentLocation,
-        AxisDirection.West,
-        board
-      );
-      if (newLocation.status === PathFinderStatus.Gold) {
-        return newLocation.path;
-      }
-      this.checkPushLocationToQueue(newLocation, queue);
     }
 
-    // No valid path found
     return null;
   }
 
-  checkPushLocationToQueue(newLocation: LocationPath, queue: LocationPath[]) {
-    if (newLocation.status === PathFinderStatus.Valid) {
-      queue.push(newLocation);
+  /** Marks every cell on the clear path (excluding the gold cell itself) `isClearPath = true`. */
+  markClearPath(cells: Cell[][], escapeCell: Cell): BoardCoordinate[] | null {
+    const path = this.findClearPath(cells, escapeCell);
+    if (!path) {
+      return null;
     }
+    for (const coordinate of path.slice(0, -1)) {
+      cells[coordinate.y][coordinate.x].isClearPath = true;
+    }
+    return path;
   }
 
-  // This function will check a location's status
-  // (a location is "valid" if it is on the board, is not an "obstacle",
-  // and has not yet been visited by our algorithm)
-  locationStatus(location: LocationPath, board: Cell[][]): PathFinderStatus {
-    let boardX = board[0].length;
-    let boardY = board.length;
-    let coordY = location.distanceFromTop;
-    let coordX = location.distanceFromLeft;
-
-    // Out of the limits of the board
-    if (isCoordinateInvalid(coordX, coordY, boardX, boardY)) {
-      return PathFinderStatus.Invalid;
+  private reconstructPath(
+    parents: ReadonlyMap<string, BoardCoordinate | null>,
+    goal: BoardCoordinate,
+  ): BoardCoordinate[] {
+    const path: BoardCoordinate[] = [];
+    let current: BoardCoordinate | null = goal;
+    while (current) {
+      path.push(current);
+      current = parents.get(coordinateKey(current)) ?? null;
     }
-
-    if (board[coordY][coordX].hasGold) {
-      return PathFinderStatus.Gold;
-    }
-
-    if (isCellAlreadyTaken(board[coordY][coordX])) {
-      // location is either an obstacle or has been visited
-      return PathFinderStatus.Blocked;
-    }
-
-    return PathFinderStatus.Valid;
-  }
-
-  // Explores the grid from the given location in the given
-  // direction
-  exploreInDirection(
-    currentLocation: LocationPath,
-    direction: AxisDirection,
-    board: Cell[][]
-  ) {
-    let newPath = currentLocation.path.slice();
-    let dft = currentLocation.distanceFromTop;
-    let dfl = currentLocation.distanceFromLeft;
-
-    switch (direction) {
-      case AxisDirection.North:
-        dft -= 1;
-        break;
-      case AxisDirection.East:
-        dfl += 1;
-        break;
-      case AxisDirection.South:
-        dft += 1;
-        break;
-      case AxisDirection.West:
-        dfl -= 1;
-        break;
-    }
-
-    newPath.push({ X: dfl, Y: dft });
-
-    let newLocation = {
-      distanceFromTop: dft,
-      distanceFromLeft: dfl,
-      path: newPath,
-      status: PathFinderStatus.Unknown,
-    };
-
-    newLocation.status = this.locationStatus(newLocation, board);
-
-    // If this new location is valid, mark it as 'Visited'
-    if (newLocation.status === PathFinderStatus.Valid) {
-      board[newLocation.distanceFromTop][newLocation.distanceFromLeft].status =
-        PathFinderStatus.Valid;
-    }
-
-    return newLocation;
+    return path.reverse();
   }
 }

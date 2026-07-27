@@ -1,91 +1,50 @@
-<div class="align-items-center container-fluid">
-  <h1>HUNT THE WUMPUS!</h1>
-  <h4>Reglas: <i [ngbTooltip]="tipContent" class="fas fa-info-circle"></i></h4>
-  <h5>Utiliza las flechas teclado para moverte o diparar</h5>
-  <div class="logger mt-1 mb-2">
-    <p>
-      Modo Actual:
-      <span *ngIf="!isWalking" class="arrow-mode">DISPARAR FLECHA</span>
-      <span *ngIf="isWalking" class="walk-mode">CAMINAR</span>
-    </p>
-    <p>
-      Flechas Restantes:
-      <span
-        class="arrow-number"
-        [ngClass]="{ 'no-arrows': board.player?.arrows === 0 }"
-        >{{ board.player?.arrows }}</span
-      >
-    </p>
-  </div>
-  <div class="logger mt-1 mb-2">
-    <div *ngFor="let log of board.log">
-      <span [class]="log.class">{{ log.message }}</span>
+@if (board(); as board) {
+  <div class="board-screen">
+    <h1>HUNT THE WUMPUS</h1>
+
+    <div class="status">
+      <span>Flechas: {{ board.hunter.arrows }}</span>
+      <span>Orientación: {{ board.hunter.facing }}</span>
     </div>
-  </div>
-  <div>
-    <button
-      class="btn btn-primary mb-2"
-      [ngClass]="{ 'walk-btn-color': isWalking, 'shoot-btn-color': !isWalking }"
-      (click)="isWalking = !isWalking"
-    >
-      Cambiar modo a {{ !isWalking ? "Caminar" : "Disparar" }}
-    </button>
-  </div>
-  <div class="board-table">
-    <div *ngFor="let row of board.cells" class="cell-row">
-      <div class="field" *ngFor="let field of row">
-        <app-cell [cell]="field"></app-cell>
-      </div>
+
+    <div class="log" aria-live="polite">
+      @for (entry of board.log; track $index) {
+        <p>{{ entry.message }}</p>
+      }
     </div>
-  </div>
-  <footer>
+
+    <div class="board-grid">
+      @for (row of board.cells; track $index) {
+        <div class="board-row">
+          @for (cell of row; track cell.number) {
+            <app-cell [cell]="cell" [hunterFacing]="board.hunter.facing" />
+          }
+        </div>
+      }
+    </div>
+
+    <div class="controls">
+      <button type="button" (click)="turnLeft()" [disabled]="isGameOver()">Girar Izquierda</button>
+      <button type="button" (click)="advance()" [disabled]="isGameOver()">Avanzar</button>
+      <button type="button" (click)="turnRight()" [disabled]="isGameOver()">Girar Derecha</button>
+      <button type="button" (click)="shoot()" [disabled]="isGameOver()">Disparar Flecha</button>
+      <button type="button" (click)="exit()" [disabled]="isGameOver() || !canExit()">Salir</button>
+    </div>
+
     <div class="buttons">
-      <button (click)="resetBoard()" class="btn btn-primary">
-        Refrescar Tablero
-      </button>
-      <button (click)="goBack()" class="btn btn-secondary">
-        Volver a la configuración
-      </button>
+      <button type="button" (click)="playAgain()">Refrescar Tablero</button>
+      <button type="button" (click)="goToSettings()">Volver a la configuración</button>
     </div>
-  </footer>
-</div>
 
-<ng-template #content let-modal>
-  <div class="modal-header">
-    <h4 class="modal-title">{{ modalTitle }}</h4>
+    @if (isGameOver()) {
+      <div class="end-of-round">
+        <div class="end-of-round-dialog">
+          <h2>{{ endOfRoundTitle() }}</h2>
+          <p>{{ endOfRoundMessage() }}</p>
+          <button type="button" (click)="playAgain()">Jugar de nuevo</button>
+          <button type="button" (click)="goToSettings()">Cambiar la configuración</button>
+        </div>
+      </div>
+    }
   </div>
-  <div class="modal-body">
-    <p>{{ modalMessage }}</p>
-  </div>
-  <div class="modal-footer">
-    <button
-      type="button"
-      class="btn btn-primary"
-      (click)="modal.close('again')"
-    >
-      Jugar de nuevo
-    </button>
-
-    <button
-      type="button"
-      class="btn btn-secondary"
-      (click)="modal.close('settings')"
-    >
-      Cambiar la configuración
-    </button>
-  </div>
-</ng-template>
-
-<ng-template #tipContent>
-  <p>* El objetivo del juego es encontrar la celda del oro y escapar.</p>
-  <p>
-    * Utiliza las flechas de tu teclado para realizar acciones con tu personaje.
-  </p>
-  <p>
-    * Puedes cambiar de modo <b>caminar</b> a modo <b>disparar</b> mediante el
-    botón de "Cambiar Modo".
-  </p>
-  <p>* Si te paras sobre una celda que tenga al Wumpus o un Pozo, mueres.</p>
-  <p>* Puedes matar al Wumpus si lo alcanza una flecha disparada en su dirección.</p>
-  <p>* Puedes ver los logs de tus acciones y el estado en la parte superior de la pantalla.</p>
-</ng-template>
+}

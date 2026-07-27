@@ -1,192 +1,104 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostListener,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { getAvailableDirections } from 'src/app/core/helpers/helper-functions';
-import { GameConfiguration } from 'src/app/core/models/configuration';
-import {
-  AxisDirection,
-  Board,
-  Cell,
-  ConsoleMessages,
-  KEY_CODE,
-} from 'src/app/core/models/game';
-import { GameService } from 'src/app/services/game.service';
-import { MessagesService } from 'src/app/services/messages.service';
-import { PathCreatorService } from 'src/app/services/path-creator.service';
-import { PlayerService } from 'src/app/services/player.service';
-import { StorageService } from 'src/app/services/storage.service';
 
+import { getDefaultGameConfiguration } from '../../core/models/configuration';
+import { Board, Perception } from '../../core/models/game';
+import { GameService } from '../../services/game.service';
+import { MessagesService } from '../../services/messages.service';
+import { PlayerService } from '../../services/player.service';
+import { StorageService } from '../../services/storage.service';
+import { CellComponent } from '../cell/cell.component';
+
+/**
+ * The play screen: signals-driven board state, the five required command buttons, and the
+ * text/log output area — the minimal interface game-rules.md §7 requires (FR-008).
+ */
 @Component({
   selector: 'app-board',
+  standalone: true,
+  imports: [CellComponent],
   templateUrl: './board.component.html',
-  styleUrls: ['./board.component.scss'],
+  styleUrl: './board.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BoardComponent implements OnInit {
-  @ViewChild('content', { static: false }) private content;
+export class BoardComponent {
+  private readonly gameService = inject(GameService);
+  private readonly playerService = inject(PlayerService);
+  private readonly messages = inject(MessagesService);
+  private readonly storage = inject(StorageService);
+  private readonly router = inject(Router);
 
-  gameSettings: GameConfiguration;
-  board: Board;
-  playerCell: Cell;
-  cells: Cell[][];
-  // Store a reference to the enum to use in template
-  AxisDirection = AxisDirection;
-  isWalking = true;
-  modalTitle: string;
-  modalMessage: string;
+  readonly board = signal<Board | null>(null);
 
-  constructor(
-    private storageService: StorageService,
-    private gameService: GameService,
-    private playerService: PlayerService,
-    private pathService: PathCreatorService,
-    private modalService: NgbModal,
-    private messagesService: MessagesService,
-    private route: Router
-  ) {}
+  readonly isGameOver = computed(() => {
+    const board = this.board();
+    return !!board && (!board.hunter.isAlive || board.hunter.exitOutcome !== null);
+  });
 
-  ngOnInit(): void {
-    this.startGame();
+  readonly canExit = computed(() => {
+    const board = this.board();
+    return !!board && this.playerService.canExit(board);
+  });
+
+  readonly endOfRoundTitle = computed(() => {
+    const board = this.board();
+    if (!board) return '';
+    if (!board.hunter.isAlive) return 'HAS MUERTO';
+    if (board.hunter.exitOutcome === 'Won') return 'HAS GANADO LA PARTIDA';
+    return 'HAS SALIDO SIN EL ORO';
+  });
+
+  readonly endOfRoundMessage = computed(() => {
+    const board = this.board();
+    if (!board) return '';
+    return board.diedReason ?? board.log.at(-1)?.message ?? '';
+  });
+
+  constructor() {
+    this.startNewGame();
   }
 
-  startGame() {
-    this.createBoardMatrix();
-    this.addPlayer();
-    this.checkBoardStatus();
-    this.board.log.push({
-      message: 'Entras a la mazmorra...',
-      class: 'start',
-    });
+  advance(): void {
+    this.act((board) => this.playerService.advance(board));
   }
 
-  createBoardMatrix() {
-    let cells: Cell[][];
-    this.gameSettings = this.storageService.getGameSettings();
-    this.board = this.gameService.createEmptyBoard(this.gameSettings);
-    cells = this.board.cells;
-    this.gameService.addEscapeCell(cells);
-    this.gameService.addGold(cells);
-    this.gameService.addWumpus(cells);
-    this.pathService.createCleanPathToGold(cells);
-    this.gameService.addPits(cells, this.gameSettings.pits);
+  turnLeft(): void {
+    this.act((board) => this.playerService.turnLeft(board));
   }
 
-  /**
-   * Update board status
-   */
-  checkBoardStatus() {
-    this.playerCell = this.playerService.getPlayerCell(this.board.cells);
-    this.board.availableDirections = getAvailableDirections(
-      this.board,
-      this.playerCell
-    );
+  turnRight(): void {
+    this.act((board) => this.playerService.turnRight(board));
   }
 
-  addPlayer() {
-    this.playerService.addPlayerToItsInitialCell(this.board.cells);
+  shoot(): void {
+    this.act((board) => this.playerService.shoot(board));
   }
 
-  /**
-   * Move player in the board
-   * @param direction
-   */
-  move(direction: AxisDirection) {
-    this.playerCell = this.playerService.movePlayer(
-      this.board,
-      this.playerCell,
-      direction
-    );
+  exit(): void {
+    this.act((board) => this.playerService.exit(board));
+  }
 
-    if (this.board.player.escaped) {
-      this.modalTitle = 'HAS GANADO LA PARTIDA';
-      this.modalMessage = this.messagesService.getMessage(
-        ConsoleMessages.wonGame
-      );
-      this.openResetModal();
+  playAgain(): void {
+    this.startNewGame();
+  }
+
+  goToSettings(): void {
+    this.router.navigate(['/']);
+  }
+
+  private startNewGame(): void {
+    const config = this.storage.getGameSettings() ?? getDefaultGameConfiguration();
+    const board = this.gameService.generateBoard(config);
+    board.log.push({ message: this.messages.getMessage(Perception.Start), perception: Perception.Start });
+    this.board.set(board);
+  }
+
+  private act(action: (board: Board) => void): void {
+    const board = this.board();
+    if (!board || this.isGameOver()) {
       return;
     }
-
-    if (this.board.player.isAlive) {
-      this.checkBoardStatus();
-    } else {
-      this.modalTitle = 'HAS MUERTO';
-      this.modalMessage = this.board?.diedReason || '';
-      this.openResetModal();
-    }
-  }
-
-  shootArrow(direction: AxisDirection) {
-    if (this.board.player.arrows < 1) {
-      this.board.log[0].message =
-        'Buscas en tu mochila pero no encuentras más flechas';
-    } else {
-      this.playerService.shootArrow(this.board, this.playerCell, direction);
-      this.board.player.arrows -= 1;
-      this.checkBoardStatus();
-    }
-  }
-
-  async openResetModal() {
-    const res = await this.modalService.open(this.content, {
-      centered: true,
-      backdrop: 'static',
-    }).result;
-    this.modalResponse(res);
-  }
-
-  modalResponse(res: string) {
-    if (res === 'settings') {
-      this.goBack();
-    } else {
-      this.resetBoard();
-    }
-  }
-
-  resetBoard() {
-    this.startGame();
-  }
-
-  goBack() {
-    this.route.navigate(['']);
-  }
-
-  @HostListener('window:keyup', ['$event'])
-  keyEvent(event: KeyboardEvent) {
-    switch (event.key) {
-      case KEY_CODE.RIGHT_ARROW:
-        if (this.isWalking) {
-          this.move(AxisDirection.East);
-        } else {
-          this.shootArrow(AxisDirection.East);
-        }
-        break;
-      case KEY_CODE.LEFT_ARROW:
-        if (this.isWalking) {
-          this.move(AxisDirection.West);
-        } else {
-          this.shootArrow(AxisDirection.West);
-        }
-        break;
-      case KEY_CODE.DOWN_ARROW:
-        if (this.isWalking) {
-          this.move(AxisDirection.South);
-        } else {
-          this.shootArrow(AxisDirection.South);
-        }
-        break;
-      case KEY_CODE.UP_ARROW:
-        if (this.isWalking) {
-          this.move(AxisDirection.North);
-        } else {
-          this.shootArrow(AxisDirection.North);
-        }
-        break;
-    }
+    action(board);
+    this.board.set({ ...board });
   }
 }

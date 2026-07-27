@@ -1,181 +1,152 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+
+import { findCell, getAdjacentCell } from '../core/helpers/helper-functions';
 import {
-  findSpecificCell,
-  getAdjacentCell,
-  isWall,
-} from '../core/helpers/helper-functions';
-import {
-  ArrowLog,
-  AxisDirection,
+  ALL_DIRECTIONS,
   Board,
   Cell,
-  CellLog,
-  ConsoleMessages,
-  SearcheableCellAttr,
+  Direction,
+  ExitOutcome,
+  Perception,
+  TURN_LEFT,
+  TURN_RIGHT,
 } from '../core/models/game';
 import { MessagesService } from './messages.service';
 
+/**
+ * The hunter's actions — turn, advance, shoot, exit — implementing game-rules.md §2–§4 (FR-002,
+ * FR-004, FR-005, FR-006). Every method takes the `Board` for the round it acts on and mutates it
+ * in place; the caller (`BoardComponent`) is responsible for publishing the change to its signal.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class PlayerService {
-  constructor(private messagesService: MessagesService) {}
+  private readonly messages = inject(MessagesService);
 
-  addPlayerToItsInitialCell(cells: Cell[][]) {
-    let escapeCell = findSpecificCell(cells, SearcheableCellAttr.isEscape);
-    escapeCell.hasPlayer = true;
-  }
-
-  getPlayerCell(cells: Cell[][]) {
-    let playerCell = findSpecificCell(cells, SearcheableCellAttr.hasPlayer);
-    return playerCell;
-  }
-
-  shootArrow(board: Board, currentCell: Cell, direction: AxisDirection) {
+  turnLeft(board: Board): void {
     board.log = [];
-    let nextCell = getAdjacentCell(board.cells, currentCell, direction);
-    let arrowLog = this.checkArrowColission(board, nextCell, direction);
-    board.log.push({ message: arrowLog.message });
+    board.hunter.facing = TURN_LEFT[board.hunter.facing];
   }
 
-  checkArrowColission(
-    board: Board,
-    cell: Cell,
-    direction: AxisDirection
-  ): ArrowLog {
-    let arrowLog: ArrowLog = {
-      hitWumpus: false,
-      message: this.messagesService.getMessage(ConsoleMessages.arrowHitWall),
-    };
-    if (!cell) {
-      return arrowLog;
-    }
-    if (cell.isWumpus) {
-      this.killWumpus(board, cell);
-      arrowLog.hitWumpus = true;
-      arrowLog.message = this.messagesService.getMessage(
-        ConsoleMessages.arrowHitWumpus
-      );
-      return arrowLog;
-    }
-    if (isWall(cell.wall)) {
-      return arrowLog;
-    }
-    let nextCell = getAdjacentCell(board.cells, cell, direction);
-    return this.checkArrowColission(board, nextCell, direction);
-  }
-
-  /**
-   * Kill the wumpus and remove the smell cells
-   * @param board
-   * @param wumpusCell
-   */
-  killWumpus(board: Board, wumpusCell: Cell) {
-    wumpusCell.isWumpus = false;
-    let northCell = getAdjacentCell(
-      board.cells,
-      wumpusCell,
-      AxisDirection.North
-    );
-    let southCell = getAdjacentCell(
-      board.cells,
-      wumpusCell,
-      AxisDirection.South
-    );
-    let eastCell = getAdjacentCell(board.cells, wumpusCell, AxisDirection.East);
-    let westCell = getAdjacentCell(board.cells, wumpusCell, AxisDirection.West);
-    this.removeWumpusSmell(northCell);
-    this.removeWumpusSmell(southCell);
-    this.removeWumpusSmell(eastCell);
-    this.removeWumpusSmell(westCell);
-  }
-
-  removeWumpusSmell(cell: Cell) {
-    if (cell && cell.hasStink) {
-      cell.hasStink = false;
-    }
-  }
-
-  movePlayer(board: Board, currentCell: Cell, direction: AxisDirection): Cell {
+  turnRight(board: Board): void {
     board.log = [];
-    let nextCell = getAdjacentCell(board.cells, currentCell, direction);
-    if (nextCell) {
-      if (nextCell.isWumpus) {
-        this.fellInWumpus(board);
-        return null;
-      }
-      if (nextCell.isPit) {
-        this.fellInPit(board);
-        return null;
-      }
-      if (nextCell.hasBreeze) {
-        this.fellInBreeze(board);
-      }
-      if (nextCell.hasStink) {
-        this.fellInStink(board);
-      }
-      if (nextCell.hasGold) {
-        this.fellInGold(board);
-        nextCell.hasGold = false;
-      }
-      if (nextCell.isEscape && board.player.hasGold) {
-        this.wonGame(board);
-        nextCell.hasGold = false;
-      }
-      if (board.log.length === 0) {
-        this.fellInEmptyCell(board);
-      }
-      currentCell.hasPlayer = false;
-      nextCell.hasPlayer = true;
-      return nextCell;
+    board.hunter.facing = TURN_RIGHT[board.hunter.facing];
+  }
+
+  /** Moves the hunter one cell in its current facing, or reports "choque" if blocked. */
+  advance(board: Board): void {
+    board.log = [];
+    const hunterCell = this.findHunterCell(board.cells);
+    const nextCell = getAdjacentCell(board.cells, hunterCell, board.hunter.facing);
+
+    if (!nextCell) {
+      this.pushLog(board, Perception.Choque);
+      return;
+    }
+    if (nextCell.isWumpus) {
+      this.die(board, Perception.WumpusDeath);
+      return;
+    }
+    if (nextCell.isPit) {
+      this.die(board, Perception.PitDeath);
+      return;
+    }
+
+    hunterCell.hasPlayer = false;
+    nextCell.hasPlayer = true;
+    board.hunter.movesTaken++;
+
+    let perceivedSomething = false;
+    if (nextCell.hasBreeze) {
+      this.pushLog(board, Perception.Breeze);
+      perceivedSomething = true;
+    }
+    if (nextCell.hasStink) {
+      this.pushLog(board, Perception.Stench);
+      perceivedSomething = true;
+    }
+    if (nextCell.hasGold) {
+      this.pushLog(board, Perception.Glimmer);
+      board.hunter.hasGold = true;
+      perceivedSomething = true;
+    }
+    if (!perceivedSomething) {
+      this.pushLog(board, Perception.EmptyCell);
+    }
+  }
+
+  /** Fires an arrow in the hunter's current facing; pits don't affect its travel. */
+  shoot(board: Board): void {
+    board.log = [];
+    if (board.hunter.arrows < 1) {
+      this.pushLog(board, Perception.NoArrows);
+      return;
+    }
+    board.hunter.arrows--;
+    board.hunter.arrowsUsed++;
+    const hunterCell = this.findHunterCell(board.cells);
+    this.fireArrow(board, hunterCell, board.hunter.facing);
+  }
+
+  /** Only valid on the escape cell — the control is also disabled in the UI (FR-005). */
+  canExit(board: Board): boolean {
+    return this.findHunterCell(board.cells).isEscape;
+  }
+
+  exit(board: Board): void {
+    board.log = [];
+    if (!this.canExit(board)) {
+      return;
+    }
+    if (board.hunter.hasGold) {
+      board.hunter.exitOutcome = ExitOutcome.Won;
+      this.pushLog(board, Perception.Won);
     } else {
-      return null;
+      board.hunter.exitOutcome = ExitOutcome.ExitedWithoutGold;
+      this.pushLog(board, Perception.ExitedWithoutGold);
     }
   }
 
-  fellInEmptyCell(board: Board) {
-    let message: CellLog = {
-      message: this.messagesService.getMessage(ConsoleMessages.emptyCell),
-    };
-    board.log.push(message);
+  private fireArrow(board: Board, fromCell: Cell, direction: Direction): void {
+    const nextCell = getAdjacentCell(board.cells, fromCell, direction);
+    if (!nextCell) {
+      this.pushLog(board, Perception.ArrowHitWall);
+      return;
+    }
+    if (nextCell.isWumpus) {
+      this.killWumpus(board.cells, nextCell);
+      this.pushLog(board, Perception.Grito);
+      return;
+    }
+    this.fireArrow(board, nextCell, direction);
   }
 
-  fellInPit(board: Board) {
-    board.player.isAlive = false;
-    board.diedReason = this.messagesService.getMessage(ConsoleMessages.pitDead);
+  private killWumpus(cells: Cell[][], wumpusCell: Cell): void {
+    wumpusCell.isWumpus = false;
+    for (const direction of ALL_DIRECTIONS) {
+      const neighbor = getAdjacentCell(cells, wumpusCell, direction);
+      if (neighbor) {
+        neighbor.hasStink = false;
+      }
+    }
   }
 
-  fellInWumpus(board: Board) {
-    board.player.isAlive = false;
-    board.diedReason = this.messagesService.getMessage(
-      ConsoleMessages.wumpusWon
-    );
+  private die(board: Board, perception: typeof Perception.WumpusDeath | typeof Perception.PitDeath): void {
+    board.hunter.isAlive = false;
+    board.diedReason = this.messages.getMessage(perception);
+    this.pushLog(board, perception);
   }
 
-  wonGame(board: Board) {
-    board.player.escaped = true;
+  private pushLog(board: Board, perception: Perception): void {
+    board.log.push({ message: this.messages.getMessage(perception), perception });
   }
 
-  fellInBreeze(board: Board) {
-    let message: CellLog = {
-      message: this.messagesService.getMessage(ConsoleMessages.pitBreeze),
-      class: 'breeze',
-    };
-    board.log.push(message);
-  }
-  fellInStink(board: Board) {
-    let message: CellLog = {
-      message: this.messagesService.getMessage(ConsoleMessages.wumpusStink),
-      class: 'stink',
-    };
-    board.log.push(message);
-  }
-  fellInGold(board: Board) {
-    let message: CellLog = {
-      message: this.messagesService.getMessage(ConsoleMessages.goldenFound),
-      class: 'gold',
-    };
-    board.log.push(message);
-    board.player.hasGold = true;
+  private findHunterCell(cells: Cell[][]): Cell {
+    const hunterCell = findCell(cells, (cell) => cell.hasPlayer);
+    if (!hunterCell) {
+      throw new Error('No cell currently holds the hunter — board is in an invalid state.');
+    }
+    return hunterCell;
   }
 }

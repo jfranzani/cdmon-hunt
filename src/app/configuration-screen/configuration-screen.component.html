@@ -1,43 +1,23 @@
-<div class="container">
+<div class="configuration-screen">
   <h1>HUNT THE WUMPUS</h1>
   <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
-    <div>
-      <label class="large-lbl"> Cantidad de Filas: </label>
-      <input
-        #rows
-        type="number"
-        min="4"
-        max="50"
-        formControlName="colsX"
-        required
-      />
+    <div class="field">
+      <label for="cellsX">Cantidad de Columnas</label>
+      <input id="cellsX" type="number" min="1" formControlName="cellsX" />
     </div>
-    <div>
-      <label class="large-lbl"> Cantidad de Columnas: </label>
-      <input
-        #columns
-        type="number"
-        min="4"
-        max="50"
-        formControlName="colsY"
-        required
-      />
+    <div class="field">
+      <label for="cellsY">Cantidad de Filas</label>
+      <input id="cellsY" type="number" min="1" formControlName="cellsY" />
     </div>
-    <div>
-      <label class="large-lbl"> Cantidad de Pozos: </label>
-      <input
-        type="number"
-        min="1"
-        [max]="(rows.value * columns.value) / 2"
-        formControlName="pits"
-        required
-      />
+    <div class="field">
+      <label for="pits">Cantidad de Pozos</label>
+      <input id="pits" type="number" min="0" formControlName="pits" />
     </div>
-    <div>
-      <label class="large-lbl"> Cantidad de Flechas: </label>
-      <input type="number" min="0" max="50" formControlName="arrows" required />
+    <div class="field">
+      <label for="arrows">Cantidad de Flechas</label>
+      <input id="arrows" type="number" min="0" formControlName="arrows" />
     </div>
 
-    <button type="submit" class="btn btn-primary" [disabled]="!settingsForm.valid">JUGAR</button>
+    <button type="submit" [disabled]="settingsForm.invalid">JUGAR</button>
   </form>
 </div>

@@ -1,3 +1,13 @@
-.large-lbl {
-  width: 200px;
+.configuration-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 320px;
+  margin: 2rem auto;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }

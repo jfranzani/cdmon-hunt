@@ -1,76 +1,48 @@
-@import "/src/app/styles/colors";
+@use '../../styles/colors' as *;
 
-.cell-img {
-  width: 100px;
-  height: 100px;
-  &-wumpus {
-    width: 70%;
-    height: 91%;
-    margin-left: 10px;
-  }
-  &-breeze {
-    width: 80px;
-    height: 80px;
-    margin-left: 5px;
-    margin-top: 5px;
-  }
-  &-gold {
-    width: 80px;
-    height: 80px;
-    margin-left: 5px;
-    margin-top: 5px;
-  }
-  &-stink {
-    width: 80px;
-    height: 80px;
-    margin-left: 5px;
-    margin-top: 5px;
-  }
-  &-hunter {
-    margin-left: 25px;
-    margin-top: 10px;
-    height: 50%;
-    width: 50%;
-  }
+.cell {
+  width: 48px;
+  height: 48px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #444;
 }
 
-.inner-cell {
-  height: 90%;
-  width: 90%;
-  margin-left: 5px;
-  margin-top: 5px;
-  overflow: hidden;
+.wall-top {
+  border-top: $wall-border solid $wall-color;
+}
+.wall-bottom {
+  border-bottom: $wall-border solid $wall-color;
+}
+.wall-left {
+  border-left: $wall-border solid $wall-color;
+}
+.wall-right {
+  border-right: $wall-border solid $wall-color;
+}
+.escape {
+  outline: 3px dashed $escape-color;
+  outline-offset: -3px;
 }
 
-.cell-block {
-  border: 1px $pitColor solid;
-  width: 110px;
-  height: 110px;
-}
+.hunter {
+  width: 60%;
+  height: 60%;
+  background: $wumpus-color;
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
 
-.wall {
-  &-left {
-    border-left: $wallBorder solid $wallColor;
-    &-escape {
-      border-left: $wallBorder dashed $escapeColor;
-    }
+  &.facing-north {
+    transform: rotate(0deg);
   }
-  &-right {
-    border-right: $wallBorder solid $wallColor;
-    &-escape {
-      border-right: $wallBorder dashed $escapeColor;
-    }
+  &.facing-east {
+    transform: rotate(90deg);
   }
-  &-top {
-    border-top: $wallBorder solid $wallColor;
-    &-escape {
-      border-top: $wallBorder dashed $escapeColor;
-    }
+  &.facing-south {
+    transform: rotate(180deg);
   }
-  &-bottom {
-    border-bottom: $wallBorder solid $wallColor;
-    &-escape {
-      border-bottom: $wallBorder dashed $escapeColor;
-    }
+  &.facing-west {
+    transform: rotate(270deg);
   }
 }

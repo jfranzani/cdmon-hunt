@@ -35,17 +35,17 @@ See `plan.md` → Project Structure → Source Code for the full target tree.
 **Purpose**: Bring the workspace onto Angular 22 with standalone-by-default tooling before any
 game-logic or component work starts.
 
-- [ ] T001 Remove legacy tooling that Constitution Principle II forbids reintroducing: delete
+- [X] T001 Remove legacy tooling that Constitution Principle II forbids reintroducing: delete
       `tslint.json` and the Protractor-based `e2e/` config (repo root, `e2e/`)
-- [ ] T002 Regenerate/update the Angular workspace scaffold for Angular 22 with standalone-by-default
+- [X] T002 Regenerate/update the Angular workspace scaffold for Angular 22 with standalone-by-default
       schematics: `angular.json`, `package.json`, `tsconfig.json`, `tsconfig.app.json`,
       `tsconfig.spec.json` (repo root) — per `research.md` §1
-- [ ] T003 [P] Configure ESLint with `@angular-eslint` as TSLint's replacement, wired into the
+- [X] T003 [P] Configure ESLint with `@angular-eslint` as TSLint's replacement, wired into the
       `angular.json` lint target (repo root: `eslint.config.js` or equivalent, `angular.json`)
-- [ ] T004 [P] Update `package.json` dependencies: `@angular/*` → `22.x`; remove `ng-bootstrap`,
+- [X] T004 [P] Update `package.json` dependencies: `@angular/*` → `22.x`; remove `ng-bootstrap`,
       `bootstrap`, `jquery`, `protractor`; keep `@fortawesome/*` only if User Story 2 keeps it per
       `research.md` §5; do not add `@angular/animations` (`package.json`) — per `research.md` §4, §7
-- [ ] T005 [P] Set up `src/main.ts` and a standalone `app.config.ts` with `bootstrapApplication` and
+- [X] T005 [P] Set up `src/main.ts` and a standalone `app.config.ts` with `bootstrapApplication` and
       `provideRouter` — no `NgModule`s anywhere (`src/main.ts`, `src/app/app.config.ts`)
 
 **Checkpoint**: Workspace builds clean on Angular 22 with no legacy tooling before any game code lands.
@@ -58,16 +58,16 @@ game-logic or component work starts.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T006 Extend the core game models for the facing-direction and exit-outcome concepts
+- [X] T006 Extend the core game models for the facing-direction and exit-outcome concepts
       `game-rules.md` requires: add a `Facing` (N/E/S/W) type and `exitOutcome`/move-count/
       arrows-used fields to the `Hunter`/`Board` shapes (`src/app/core/models/game.ts`)
-- [ ] T007 [P] Update the `GameConfiguration` model/defaults so the config screen defaults to a
+- [X] T007 [P] Update the `GameConfiguration` model/defaults so the config screen defaults to a
       square board per `spec.md` Assumptions (`src/app/core/models/configuration.ts`)
-- [ ] T008 Rewrite `StorageService` with an in-memory fallback when `localStorage` is unavailable
+- [X] T008 Rewrite `StorageService` with an in-memory fallback when `localStorage` is unavailable
       (`src/app/services/storage.service.ts`) — per `spec.md` Edge Cases
-- [ ] T009 Define `app.routes.ts` with the two required routes (configuration screen, play screen)
+- [X] T009 Define `app.routes.ts` with the two required routes (configuration screen, play screen)
       via `provideRouter` (`src/app/app.routes.ts`) — per FR-008 (exactly two screens)
-- [ ] T010 Convert `AppComponent` to a standalone root component hosting `<router-outlet>`
+- [X] T010 Convert `AppComponent` to a standalone root component hosting `<router-outlet>`
       (`src/app/app.component.ts`)
 
 **Checkpoint**: Foundation ready — User Story 1 implementation can now begin.
@@ -86,56 +86,56 @@ advance, shoot, exit), and confirm every perception and outcome matches `game-ru
 
 ### Tests for User Story 1 (write first, confirm they fail before implementing — FR-013)
 
-- [ ] T011 [P] [US1] Unit tests for board-generation invariants (escape cell on a wall, gold/Wumpus on
+- [X] T011 [P] [US1] Unit tests for board-generation invariants (escape cell on a wall, gold/Wumpus on
       distinct available cells, a clear path from escape to gold exists, pits never on escape/gold/
       Wumpus/clear-path cells) in `src/app/services/game.service.spec.ts` — per FR-001,
       `legacy-baseline.md` §8
-- [ ] T012 [P] [US1] Unit tests for the rewritten clear-path search: each cell is explored at most
+- [X] T012 [P] [US1] Unit tests for the rewritten clear-path search: each cell is explored at most
       once on a board shaped to force what would have been duplicate revisits in the legacy BFS, and
       it returns an explicit no-path result (no throw) when the gold is unreachable, in
       `src/app/services/path-creator.service.spec.ts` — per FR-001a, `research.md` §11
-- [ ] T013 [P] [US1] Unit tests for the facing/turn/advance state machine: turn left/right rotates
+- [X] T013 [P] [US1] Unit tests for the facing/turn/advance state machine: turn left/right rotates
       facing without moving or consuming a resource; advance moves one cell in the current facing
       when unblocked and stays put with a "choque" result when blocked, in
       `src/app/services/player.service.spec.ts` — per FR-002, FR-006
-- [ ] T014 [P] [US1] Unit tests for shoot-in-facing-direction collision: Wumpus hit kills it and
+- [X] T014 [P] [US1] Unit tests for shoot-in-facing-direction collision: Wumpus hit kills it and
       clears neighboring stench, wall hit stops the arrow, a pit between hunter and target does not
       affect the arrow, and shooting with zero arrows is a no-op, in
       `src/app/services/player.service.spec.ts` — per FR-004
-- [ ] T015 [P] [US1] Unit tests for the exit action's three outcomes: win (on escape cell with gold),
+- [X] T015 [P] [US1] Unit tests for the exit action's three outcomes: win (on escape cell with gold),
       exit-without-gold (on escape cell without gold), and unavailable everywhere else, in
       `src/app/services/player.service.spec.ts` — per FR-005
-- [ ] T016 [P] [US1] Unit tests confirming exactly one message string exists per perception type
+- [X] T016 [P] [US1] Unit tests confirming exactly one message string exists per perception type
       (Wumpus-in-cell, stench, breeze, glimmer, choque, grito) with no duplicate registrations, in
       `src/app/services/messages.service.spec.ts` — per FR-006
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Port `GameService` board generation (escape/gold/Wumpus/pit placement, breeze/stench
+- [X] T017 [US1] Port `GameService` board generation (escape/gold/Wumpus/pit placement, breeze/stench
       activation) onto signals-based state (`src/app/services/game.service.ts`) — depends on T006;
       makes T011 pass
-- [ ] T018 [US1] Rewrite `PathCreatorService` per `research.md` §11: explicit visited `Set`, index-
+- [X] T018 [US1] Rewrite `PathCreatorService` per `research.md` §11: explicit visited `Set`, index-
       cursor queue instead of `Array.shift()`, parent-pointer path reconstruction, explicit no-path
       result, single `BoardCoordinate` vocabulary throughout
       (`src/app/services/path-creator.service.ts`) — depends on T006; makes T012 pass
-- [ ] T019 [US1] Rewrite `PlayerService` (models the spec's Hunter entity) with facing state,
+- [X] T019 [US1] Rewrite `PlayerService` (models the spec's Hunter entity) with facing state,
       `turnLeft`/`turnRight`, `advance` (including the wall-bump/"choque" case), shoot-in-facing-
       direction, and the exit action (`src/app/services/player.service.ts`) — depends on T006; makes
       T013, T014, T015 pass
-- [ ] T020 [US1] Rewrite `MessagesService` with exactly one message per perception/event, including
+- [X] T020 [US1] Rewrite `MessagesService` with exactly one message per perception/event, including
       the previously-dead wall-bump ("choque") message and de-duplicated arrow-hit-wall/arrow-hit-
       Wumpus strings (`src/app/services/messages.service.ts`) — makes T016 pass
-- [ ] T021 [US1] Build `ConfigurationScreenComponent` as a standalone component: the reactive form
+- [X] T021 [US1] Build `ConfigurationScreenComponent` as a standalone component: the reactive form
       (board size, pits, arrows) wired to `StorageService`, no visual polish yet — that's User Story 2
       (`src/app/configuration-screen/configuration-screen.component.ts`) — depends on T007, T008
-- [ ] T022 [US1] Build `BoardComponent` as the play screen: signals-driven board state, the five
+- [X] T022 [US1] Build `BoardComponent` as the play screen: signals-driven board state, the five
       required command buttons (advance, turn left, turn right, shoot, exit — exit disabled off the
       escape cell), and the text/log output area (`src/app/game/board/board.component.ts`) — depends
       on T017, T019, T020; satisfies FR-008
-- [ ] T023 [US1] Build `CellComponent` rendering wall/escape/hunter/facing state via template
+- [X] T023 [US1] Build `CellComponent` rendering wall/escape/hunter/facing state via template
       bindings only (`[class]`/`[ngClass]`/signals), no manual DOM mutation
       (`src/app/game/cell/cell.component.ts`) — depends on T017; satisfies FR-010
-- [ ] T024 [US1] Wire `app.routes.ts` to `ConfigurationScreenComponent`/`BoardComponent` and verify
+- [X] T024 [US1] Wire `app.routes.ts` to `ConfigurationScreenComponent`/`BoardComponent` and verify
       the full config → play → (win / die / exit-without-gold) → reset loop end-to-end in a running
       dev server, per Constitution Principle VI (`src/app/app.routes.ts`) — depends on T021, T022,
       T023
