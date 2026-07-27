@@ -10,6 +10,18 @@ import { StorageService } from '../../services/storage.service';
 import { CellComponent } from '../cell/cell.component';
 
 /**
+ * Optional keyboard layer on top of the required buttons (FR-008): arrow keys move/turn the
+ * hunter, Enter shoots. There's no "turn around"/backward action in game-rules.md §3, so the
+ * down arrow is intentionally left unbound rather than inventing new game logic for it.
+ */
+const KEY_ACTIONS: Readonly<Record<string, 'advance' | 'turnLeft' | 'turnRight' | 'shoot'>> = {
+  ArrowUp: 'advance',
+  ArrowLeft: 'turnLeft',
+  ArrowRight: 'turnRight',
+  Enter: 'shoot',
+};
+
+/**
  * The play screen: signals-driven board state, the five required command buttons, and the
  * text/log output area — the minimal interface game-rules.md §7 requires (FR-008).
  */
@@ -20,6 +32,9 @@ import { CellComponent } from '../cell/cell.component';
   templateUrl: './board.component.html',
   styleUrl: './board.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown)': 'handleKeydown($event)',
+  },
 })
 export class BoardComponent {
   private readonly gameService = inject(GameService);
@@ -84,6 +99,15 @@ export class BoardComponent {
 
   goToSettings(): void {
     this.router.navigate(['/']);
+  }
+
+  handleKeydown(event: KeyboardEvent): void {
+    const action = KEY_ACTIONS[event.key];
+    if (!action) {
+      return;
+    }
+    event.preventDefault(); // stop the arrow keys/Enter from scrolling or resubmitting anything
+    this[action]();
   }
 
   private startNewGame(): void {

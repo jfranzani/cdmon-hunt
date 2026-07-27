@@ -1,6 +1,9 @@
 @if (board(); as board) {
   <div class="board-screen">
     <h1>HUNT THE WUMPUS</h1>
+    <p class="keyboard-hint">
+      Teclado: <kbd>&uarr;</kbd> avanzar · <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> girar · <kbd>Enter</kbd> disparar
+    </p>
 
     <div class="status">
       <span>Flechas: {{ board.hunter.arrows }}</span>

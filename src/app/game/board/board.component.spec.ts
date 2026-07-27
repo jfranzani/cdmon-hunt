@@ -121,4 +121,41 @@ describe('BoardComponent', () => {
     component.goToSettings();
     expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
+
+  describe('keyboard shortcuts (FR-008: optional, layered on top of the buttons)', () => {
+    function press(key: string): void {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key }));
+    }
+
+    it('ArrowUp advances, ArrowLeft/ArrowRight turn, Enter shoots', () => {
+      press('ArrowRight');
+      expect(component.board()!.hunter.facing).toBe(Direction.South);
+
+      press('ArrowLeft');
+      expect(component.board()!.hunter.facing).toBe(Direction.East);
+
+      press('ArrowUp');
+      expect(component.board()!.cells[1][2].hasPlayer).toBeTrue();
+
+      press('Enter');
+      expect(component.board()!.hunter.arrowsUsed).toBe(1);
+    });
+
+    it('ignores unmapped keys, including ArrowDown (no backward/turn-around action exists)', () => {
+      const before = component.board();
+      press('ArrowDown');
+      press(' ');
+      expect(component.board()).toBe(before); // no new board reference — nothing acted on it
+    });
+
+    it('does nothing once the round is over', () => {
+      component.board()!.cells[1][2].isWumpus = true;
+      component.advance(); // dies
+      const movesBefore = component.board()!.hunter.movesTaken;
+
+      press('ArrowUp');
+
+      expect(component.board()!.hunter.movesTaken).toBe(movesBefore);
+    });
+  });
 });

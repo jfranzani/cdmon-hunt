@@ -59,6 +59,10 @@ npm run lint
 3. Watch the log for perceptions: stench (Wumpus nearby), breeze (pit nearby), glimmer (gold here),
    choque (you bumped a wall), and grito (you killed the Wumpus).
 
+Keyboard shortcuts are also available on the play screen (optional — the buttons always work too):
+`↑` advance, `←`/`→` turn left/right, `Enter` shoot. There's no backward/turn-around action, so `↓`
+is intentionally unbound.
+
 ## Internal rules
 
 - Pits cannot block the guaranteed path to the golden cell.
