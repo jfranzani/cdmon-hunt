@@ -1,16 +1,15 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 → 1.1.0
+- Version change: 1.1.0 → 1.2.0
 - Modified principles:
-  - I. "Gameplay Fidelity by Default" → "Gameplay Fidelity to the Canonical Rules" — the
-    authoritative source of truth is now `specs/001-angular-modernization/game-rules.md` (the
-    original assignment brief), not the legacy Angular 10 code's observed behavior. The legacy
-    code is demoted to an implementation reference that is known to diverge from the brief in
-    several places.
-  - VI. "Visual & UX Quality, Verified in the Browser" — added the assignment's required minimal
-    UI floor (buttons per command + text output box) as the primary interface; keyboard shortcuts
-    are now explicitly an additive enhancement, not the primary input model.
-- Added sections: none (existing sections amended in place)
+  - II. "Modern, Idiomatic Angular" — expanded with concrete latest-Angular coding-practice bullets
+    (inject(), signal-based input()/output(), @for track, strict-mode discipline beyond just the
+    compiler flag).
+- Added sections:
+  - VII. "Inherited Logic Gets Reviewed, Not Reimplemented Blindly" (NEW) — algorithms/logic carried
+    over from the legacy codebase, or from a prior hand-written draft, MUST be analyzed for
+    correctness and complexity and fixed where warranted, not preserved for parity's sake; this is a
+    standing rule for every coding session on this project, not a one-off for this feature.
 - Removed sections: none
 - Templates requiring updates:
   - .specify/templates/plan-template.md ✅ no changes needed (Constitution Check
@@ -45,10 +44,20 @@ remain non-negotiable unless a spec explicitly revises them.
 New and rewritten code MUST target the latest stable Angular release available
 at the time the work is done, using standalone components/directives/pipes
 (no `NgModule`-based feature modules), the signals APIs for component and
-shared state, and the modern control-flow syntax (`@if`/`@for`/`@switch`).
-TypeScript strict mode MUST stay enabled. Legacy-only dependencies (jQuery,
-Protractor, TSLint) MUST NOT be reintroduced; their replacements are chosen in
-each feature's `plan.md`, not improvised during coding.
+shared state, and the modern control-flow syntax (`@if`/`@for`/`@switch`, with
+`track` on every `@for`). TypeScript strict mode MUST stay enabled. Concretely,
+this means (non-exhaustive, but these are checked, not optional style
+preferences): use the `inject()` function instead of constructor-parameter DI;
+use the signal-based `input()`/`output()`/`model()` APIs instead of
+`@Input()`/`@Output()` decorators for new components; avoid `any` — prefer
+`unknown` with narrowing, or a precise type; prefer `readonly` fields and
+immutable data shapes where the code doesn't need to mutate in place; avoid
+manual `ChangeDetectorRef` calls (signals should make them unnecessary). This
+project stays on the current Angular major once the migration lands — do not
+let it drift stale again the way the Angular 10 baseline did. Legacy-only
+dependencies (jQuery, Protractor, TSLint) MUST NOT be reintroduced; their
+replacements are chosen in each feature's `plan.md`, not improvised during
+coding.
 
 ### III. Spec-Driven Delivery (NON-NEGOTIABLE)
 No application code (features, refactors, or gameplay/visual changes) is
@@ -85,6 +94,21 @@ shoot, exit) plus a text/log output area — per `game-rules.md` §7 is the
 primary, always-functional input model; keyboard shortcuts and richer visuals
 are additive enhancements layered on top, never a replacement for the button
 + text-output floor.
+
+### VII. Inherited Logic Gets Reviewed, Not Reimplemented Blindly
+Any algorithm or logic carried over from the legacy codebase — or from an
+earlier hand-written draft made with less experience, as several parts of this
+project were — MUST be analyzed for correctness and complexity before being
+ported or reimplemented, not copied as-is on the assumption that "it already
+works." Known bugs, missing edge-case handling, or avoidable inefficiencies
+(e.g. an unbounded/duplicate-work graph or grid traversal from a missing
+visited-check, an O(n²) loop from the wrong data structure) MUST be fixed as
+part of the port, with the finding and the fix recorded in the feature's
+`research.md` or `plan.md`. This does not conflict with Principle I: Principle
+I protects externally observable gameplay *rules*, not the internal quality of
+the code that implements them — a bug that happens to not (yet) be visible to
+a player is still a bug. This principle applies to every coding session on
+this project, not only to the initial modernization pass.
 
 ## Technology Stack Constraints
 
@@ -135,4 +159,4 @@ clarification/typo fixes) and MUST re-check `plan-template.md`,
 same amendment. Compliance is self-reviewed against this document before any
 merge to `master`.
 
-**Version**: 1.1.0 | **Ratified**: 2026-07-27 | **Last Amended**: 2026-07-27
+**Version**: 1.2.0 | **Ratified**: 2026-07-27 | **Last Amended**: 2026-07-27

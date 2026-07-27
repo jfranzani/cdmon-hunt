@@ -203,6 +203,11 @@ FR-007) plus its validation (FR-011) is the only configuration mechanism in this
   distinct available cells, a guaranteed clear path from escape to gold, and pits only on cells that
   are not the escape cell, gold cell, Wumpus cell, or clear-path cell. *(Preserved; NON-NEGOTIABLE per
   Constitution Principle I.)*
+- **FR-001a**: The clear-path search MUST explore each board cell at most once (an explicit visited-
+  set, not inferred from unrelated cell flags), MUST reconstruct the path without copying/growing a
+  full path array into every queued entry, and MUST NOT throw if no path exists (an explicit "no path"
+  result, handled by the caller). *(Fixes the missing-dedup bug in the legacy `PathCreatorService`
+  identified in `research.md` §11; Constitution Principle VII.)*
 - **FR-002**: The hunter MUST have a facing direction (N/E/S/W). "Turn left" and "turn right" MUST
   rotate that facing 90° without changing position or consuming any resource. "Advance" MUST move the
   hunter one cell in the current facing direction if that cell exists and is not blocked by a wall;
@@ -255,10 +260,12 @@ FR-007) plus its validation (FR-011) is the only configuration mechanism in this
   Transitions API for screen-to-screen navigation with a non-animated fallback where unsupported) —
   not `@angular/animations` by default. *(New — User Story 2; see `research.md` §7.)*
 - **FR-013**: The system MUST have unit tests covering, at minimum: the board-generation invariants
-  in `legacy-baseline.md` §8, the facing/turn/advance state machine (FR-002), the shoot-in-facing-
-  direction collision logic (FR-004), and the exit/win/non-win outcome (FR-005) — independent of any
-  UI framework changes. *(`game-rules.md` §7 "unit tests for all game components" — new, broadens the
-  previous board-generation-only test requirement; Constitution Principle IV.)*
+  in `legacy-baseline.md` §8, the clear-path search's single-visit/no-throw behavior (FR-001a) on a
+  board shaped to force what would have been duplicate revisits in the legacy implementation, the
+  facing/turn/advance state machine (FR-002), the shoot-in-facing-direction collision logic (FR-004),
+  and the exit/win/non-win outcome (FR-005) — independent of any UI framework changes. *(`game-rules.md`
+  §7 "unit tests for all game components" — new, broadens the previous board-generation-only test
+  requirement; Constitution Principles IV and VII.)*
 - **FR-014**: The end-of-round modal (win, death, or exit-without-gold) MUST show a run summary:
   the number of moves/turns taken and the number of arrows used during that round. *(Beyond the
   brief; User Story 3; resolved 2026-07-27 — see Clarifications.)*

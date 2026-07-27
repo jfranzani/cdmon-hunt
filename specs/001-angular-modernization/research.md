@@ -142,7 +142,72 @@ starts, per Constitution Principle III (spec-driven delivery) and V (simplicity)
   because on a wall segment facing away from North (e.g. the top wall) the hunter would start facing
   directly into a wall, which is a poor first impression even if not strictly a rule violation.
 
-## 11. User Story 3 clarifications (resolved 2026-07-27)
+## 11. Path-finding algorithm review (`PathCreatorService.findPath`)
+
+The user asked for the legacy path-finding algorithm — hand-written without much prior experience —
+to be analyzed and improved rather than ported as-is. Reading `src/app/services/path-creator.service.ts`
+closely surfaces a real bug, not just a style nit:
+
+- **Finding — no working "visited" check, so the BFS can revisit the same cell unboundedly.**
+  `exploreInDirection` does set `board[y][x].status = PathFinderStatus.Valid` on every cell it visits,
+  clearly intended as a "mark visited" step. But `locationStatus()` — the function that decides
+  whether a neighbor is `Blocked` vs. `Valid` — only calls `isCellAlreadyTaken()`, which checks
+  `isEscape`/`isPit`/`hasGold`/`isWumpus`/`isClearPath`. It never looks at the `status` field that was
+  just set. So a cell that's already been visited (and re-marked "Valid") is `Valid` again the next
+  time any neighbor reaches it, and gets pushed back onto the queue. The intended dedup line does
+  nothing; there is no dedup.
+  - **Why it still "works" today**: BFS processes the queue in FIFO order, so cells are still explored
+    in non-decreasing depth order even with duplicates, and `findPath` returns the instant it reaches
+    the gold cell — so the *first* path found is still the true shortest path. Correctness of the
+    returned path is not in question.
+  - **Why it's a real problem anyway**: without dedup, the number of enqueued (cell, path-so-far)
+    entries grows combinatorially with how open the board is and how far the gold is from the escape
+    cell — every cycle back to an already-visited cell spawns new duplicate branches. Each entry also
+    carries a full copy of its path array (`currentLocation.path.slice()` on every step). On the
+    default 8×8 board with a handful of obstacles this is masked by getting lucky and returning early,
+    but the board size is a player-configurable parameter (FR-007) — a large, mostly-open board with
+    the gold far from the escape cell can make this run very slowly or exhaust memory in the browser,
+    which is exactly the kind of latent bug that's invisible in casual testing and shows up later.
+  - **Compounding issue**: `queue.shift()` is called every iteration; `Array.prototype.shift()` is
+    O(n), so the loop is O(n²) in queue size on top of the unbounded queue growth above.
+  - **Secondary issue**: `findPath` returns `null` when no path exists (e.g. gold surrounded by
+    already-taken cells), and the caller (`createCleanPathToGold`) does not guard against that before
+    calling `.slice()` on it — a latent crash, related to but distinct from the FR-011 configuration
+    validation (that guards board-level parameters; this guards the pathfinder's own return value).
+  - **Secondary issue**: the code mixes two coordinate vocabularies for the same thing
+    (`distanceFromTop`/`distanceFromLeft` inside the search vs. `BoardCoordinate`'s `X`/`Y` for the
+    result) — harmless but needlessly hard to follow.
+
+- **Decision**: Keep breadth-first search as the algorithm — it's the right choice for "shortest path
+  on an unweighted grid" and does not need to become A\* or anything fancier. Fix the implementation:
+  1. Track visited cells explicitly with a `Set<string>` (or a same-shaped `boolean[][]`) keyed by
+     coordinate, checked *before* a neighbor is enqueued — not inferred from unrelated cell flags.
+  2. Mark a cell visited at the moment it's enqueued (not only when dequeued), which is what actually
+     prevents the combinatorial requeueing described above.
+  3. Use an index cursor into the queue array (or a real deque) instead of `Array.shift()`, so the
+     loop is O(width × height) instead of O(n²).
+  4. Reconstruct the path via parent pointers (or a single coordinate list per cell) instead of
+     copying/growing a full path array into every queued entry, which is both simpler and removes the
+     main memory cost.
+  5. Return an explicit "no path" result (e.g. `null` with a typed signature that callers must handle,
+     or a discriminated result type) and have `createCleanPathToGold` guard it defensively even though
+     FR-011's configuration validation should make it unreachable in practice — defense in depth for a
+     function whose failure mode is a hard crash.
+  6. Use one coordinate vocabulary consistently (reuse the existing `BoardCoordinate {X, Y}` shape
+     throughout the search, not a second `distanceFromTop`/`distanceFromLeft` naming).
+- **Rationale**: This directly satisfies both Constitution Principle IV (test discipline — the visited-
+  set behavior needs a dedicated unit test, e.g. a board shaped to force revisits) and the new
+  Principle VII (see `constitution.md` 1.2.0) requiring inherited algorithms to be reviewed and fixed,
+  not preserved for parity's sake — Principle I's "preserve baseline behavior" only applies to
+  externally observable gameplay rules, not to an internal bug that happens to not (yet) be visible to
+  players.
+- **Alternatives considered**: Rewriting as A\*/Dijkstra with a heuristic — rejected, unnecessary
+  complexity for an unweighted grid where BFS is already optimal (Principle V). Leaving the algorithm
+  untouched and only tests added — rejected, the user explicitly asked for it to be analyzed and
+  improved, and the unbounded-requeue issue is a genuine correctness-adjacent risk for larger
+  player-configured boards, not just style.
+
+## 12. User Story 3 clarifications (resolved 2026-07-27)
 
 - Run summary/scoring: resolved **in scope** — a lightweight summary (moves/turns taken, arrows
   used) on the end-of-round modal, now FR-014 in `spec.md`. No broader scoring/leaderboard system.

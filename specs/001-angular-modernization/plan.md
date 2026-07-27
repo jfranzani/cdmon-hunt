@@ -69,6 +69,7 @@ a new large system.
 | IV. Test Discipline | FR-013 requires unit tests for board-generation invariants, the facing/turn/advance state machine, shoot-in-facing collision, and the exit/win/non-win outcome; Testing section keeps Karma/Jasmine so existing test patterns (`*.spec.ts` already present for every service) carry forward. | PASS |
 | V. Simplicity & YAGNI | State management stays signals-in-services (no NgRx); UI kit dropped rather than swapped for another kit; animation uses native CSS/WAAPI/View Transitions layered by need rather than adding `@angular/animations` (`research.md` §3–4, §7). | PASS |
 | VI. Visual & UX Quality | FR-008 requires the button + text-output floor as the primary interface (not just keyboard); FR-012/SC-004 require mobile-width usability on top of it; manual browser verification is required before any Story 1/2 task is "done" (enforced at `tasks.md`/implementation time, not by this plan alone). | PASS (deferred enforcement to implementation) |
+| VII. Inherited Logic Gets Reviewed | The legacy `PathCreatorService.findPath` BFS was analyzed (`research.md` §11): a missing visited-set causes unbounded requeueing on open/large boards, plus an O(n²) `Array.shift()` loop and an unguarded `null` return. FR-001a requires the fix, not a straight port. | PASS |
 
 No violations requiring `Complexity Tracking` justification.
 
@@ -117,7 +118,10 @@ src/
 │   │   ├── player.service.ts        # Facing/turn/advance/shoot/exit — implements game-rules.md
 │   │   │                            #   §2–§4 (FR-002–FR-006); adds facing state and the exit action
 │   │   │                            #   the legacy service never had
-│   │   ├── path-creator.service.ts  # BFS clean-path — preserves §2 clean-path guarantee
+│   │   ├── path-creator.service.ts  # BFS clean-path — preserves the §2 clean-path guarantee, but
+│   │   │                            #   fixes the missing-visited-set bug (FR-001a, research.md §11):
+│   │   │                            #   explicit visited tracking, index-cursor queue (no `.shift()`),
+│   │   │                            #   parent-pointer path reconstruction, explicit no-path result
 │   │   ├── messages.service.ts      # One message per perception type, no duplicates (FR-006)
 │   │   └── storage.service.ts       # localStorage + in-memory fallback (Edge Cases)
 │   └── styles/                      # SCSS (kept), CSS Grid board layout, new visual language (US2)
