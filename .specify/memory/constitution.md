@@ -1,18 +1,24 @@
 <!--
 Sync Impact Report
-- Version change: (none, template) → 1.0.0
-- Modified principles: n/a (initial ratification)
-- Added sections: Core Principles (I–VI), Technology Stack Constraints,
-  Development Workflow, Governance
+- Version change: 1.0.0 → 1.1.0
+- Modified principles:
+  - I. "Gameplay Fidelity by Default" → "Gameplay Fidelity to the Canonical Rules" — the
+    authoritative source of truth is now `specs/001-angular-modernization/game-rules.md` (the
+    original assignment brief), not the legacy Angular 10 code's observed behavior. The legacy
+    code is demoted to an implementation reference that is known to diverge from the brief in
+    several places.
+  - VI. "Visual & UX Quality, Verified in the Browser" — added the assignment's required minimal
+    UI floor (buttons per command + text output box) as the primary interface; keyboard shortcuts
+    are now explicitly an additive enhancement, not the primary input model.
+- Added sections: none (existing sections amended in place)
 - Removed sections: none
 - Templates requiring updates:
   - .specify/templates/plan-template.md ✅ no changes needed (Constitution Check
     gate is generic and already references "constitution file")
   - .specify/templates/spec-template.md ✅ no changes needed (generic, principle
-    VII/I about baseline-preservation is enforced via spec content, not template
+    I's baseline-preservation language is enforced via spec content, not template
     structure)
-  - .specify/templates/tasks-template.md ✅ no changes needed (not yet read/altered;
-    task categorization is generic)
+  - .specify/templates/tasks-template.md ✅ no changes needed (task categorization is generic)
   - .claude/skills/speckit-*/SKILL.md ✅ no agent-specific references to update
 - Follow-up TODOs: none
 -->
@@ -21,15 +27,19 @@ Sync Impact Report
 
 ## Core Principles
 
-### I. Gameplay Fidelity by Default
-The legacy Angular 10 implementation's observed behavior — as documented in
-`specs/001-angular-modernization/legacy-baseline.md` — is the default baseline.
-Any feature spec MUST explicitly state, per rule, whether it preserves or
-changes it. Silently altering gameplay behavior during implementation (i.e. a
-change not called out in an approved `spec.md`) is a constitution violation.
-The five non-negotiable invariants from the original README (pits never block
-the golden path, pits never sit on the escape/gold/Wumpus cell, escape cell is
-always on a wall) remain in force unless a spec explicitly revises them.
+### I. Gameplay Fidelity to the Canonical Rules
+`specs/001-angular-modernization/game-rules.md` — the original assignment brief this project was
+built against — is the authoritative source of truth for gameplay rules, not the legacy Angular 10
+code's observed behavior. `specs/001-angular-modernization/legacy-baseline.md` documents what the
+shipped code actually does and remains a useful implementation reference, but where it diverges from
+`game-rules.md` (facing-direction movement vs. free movement, the missing explicit "exit" action, the
+dead wall-bump message, etc. — see `game-rules.md` §6), the brief wins by default. Any feature spec
+MUST explicitly state, per rule, whether it follows `game-rules.md`, deliberately preserves a legacy
+behavior instead (with rationale), or introduces a new improvement beyond either. Silently altering
+gameplay behavior during implementation (i.e. a change not called out in an approved `spec.md`) is a
+constitution violation. The board-generation invariants shared by both documents (pits never block
+the golden path, pits never sit on the escape/gold/Wumpus cell, escape cell is always on a wall)
+remain non-negotiable unless a spec explicitly revises them.
 
 ### II. Modern, Idiomatic Angular
 New and rewritten code MUST target the latest stable Angular release available
@@ -67,10 +77,14 @@ needs it.
 ### VI. Visual & UX Quality, Verified in the Browser
 Every change that affects rendering, gameplay feel, or interaction MUST be
 manually exercised in a running dev server (golden path + at least one edge
-case: dying, winning, running out of arrows) before being marked complete.
-Passing unit/component tests is necessary but not sufficient evidence of a
-working feature. Keyboard-driven play (the core input model) MUST remain
-fully functional; mouse/touch affordances are additive, not replacements.
+case: dying, winning, running out of arrows, exiting empty-handed) before
+being marked complete. Passing unit/component tests is necessary but not
+sufficient evidence of a working feature. The required minimal interface —
+one clearly labeled button per user command (advance, turn left, turn right,
+shoot, exit) plus a text/log output area — per `game-rules.md` §7 is the
+primary, always-functional input model; keyboard shortcuts and richer visuals
+are additive enhancements layered on top, never a replacement for the button
++ text-output floor.
 
 ## Technology Stack Constraints
 
@@ -99,9 +113,10 @@ fully functional; mouse/touch affordances are additive, not replacements.
    file) → `/speckit-specify` → optionally `/speckit-clarify` →
    `/speckit-plan` → optionally `/speckit-checklist` → `/speckit-tasks` →
    optionally `/speckit-analyze` → `/speckit-implement`.
-2. Each feature spec MUST cross-reference `legacy-baseline.md` for any
-   gameplay rule it touches, explicitly marking it "preserved" or "changed
-   (rationale)".
+2. Each feature spec MUST cross-reference `game-rules.md` (and, where relevant,
+   `legacy-baseline.md` for implementation-level detail) for any gameplay rule
+   it touches, explicitly marking it "follows the brief," "preserves a legacy
+   behavior (rationale)," or "new improvement (rationale)".
 3. This is a solo-maintained project: there is no external PR-approval gate,
    but a change that violates this constitution or skips the spec pipeline
    MUST NOT be merged to `master` — self-review against this document is
@@ -120,4 +135,4 @@ clarification/typo fixes) and MUST re-check `plan-template.md`,
 same amendment. Compliance is self-reviewed against this document before any
 merge to `master`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-07-27 | **Last Amended**: 2026-07-27
+**Version**: 1.1.0 | **Ratified**: 2026-07-27 | **Last Amended**: 2026-07-27

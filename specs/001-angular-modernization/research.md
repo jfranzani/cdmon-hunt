@@ -51,7 +51,7 @@ starts, per Constitution Principle III (spec-driven delivery) and V (simplicity)
 
 ## 5. Icons
 
-- **Decision**: Keep `@fortawesome/*` for now, or replace with inline SVG per FR-011's discretion;
+- **Decision**: Keep `@fortawesome/*` for now, or replace with inline SVG per FR-012's discretion;
   final call deferred to implementation of User Story 2 (this is an art-direction detail, not an
   architectural one — no blocking decision needed for `plan.md`).
 - **Rationale**: Icons are cosmetic and don't affect the Constitution Check or project structure.
@@ -77,7 +77,7 @@ starts, per Constitution Principle III (spec-driven delivery) and V (simplicity)
 - **Alternatives considered**: `@angular/animations` package — rejected as unnecessary overhead;
   revisit only if a specific transition proves impractical in pure CSS.
 
-## 8. Configuration validation (FR-008)
+## 8. Configuration validation (FR-011)
 
 - **Decision**: Reactive Forms `Validators` (`min`, `required`, `pattern`) plus one custom
   cross-field validator that estimates whether `pits` can legally fit given `cellsX`/`cellsY` (mirrors
@@ -90,7 +90,38 @@ starts, per Constitution Principle III (spec-driven delivery) and V (simplicity)
   case in the edge cases section of `spec.md`, and actual generation still needs to remain robust
   regardless.
 
-## 9. NEEDS CLARIFICATION items from spec.md carried forward
+## 9. Movement model: facing + turn/advance vs. legacy free 4-direction movement
+
+- **Decision**: Implement the facing-direction model from `game-rules.md` §3 — the hunter has a
+  heading (N/E/S/W), "turn left"/"turn right" rotate it 90° without moving, "advance" moves one cell
+  in the current heading if unblocked, and "shoot" fires in the current heading. This replaces the
+  legacy code's free 4-direction movement (any arrow key moves that direction regardless of any
+  heading) for User Story 1.
+- **Rationale**: `game-rules.md` is the authoritative rule source per Constitution Principle I (v1.1.0);
+  the original assignment brief explicitly specifies "Avanzar" / "Girar 90° izquierda o derecha" as
+  distinct actions, which only makes sense with a facing concept. This is not a discretionary
+  architecture choice — it's a correctness requirement.
+- **Alternatives considered**: Keep the legacy free-movement model and treat facing/turning as a
+  purely cosmetic overlay (e.g. rotate a sprite to match the last move direction without it affecting
+  shoot direction) — rejected, because it wouldn't satisfy `game-rules.md` §3's actual action set
+  (there would be no way to shoot in a direction other than the last move, and "turn without moving"
+  would have no effect, which contradicts the brief).
+
+## 10. Initial hunter facing direction
+
+- **Decision**: At board generation, set the hunter's initial facing to point away from the wall the
+  escape cell sits on (i.e., into the board). If the escape cell is a corner (two walls), pick the
+  first of those two wall-normal directions in a fixed, documented order (e.g. prefer facing away
+  from the top/bottom wall over the left/right wall).
+- **Rationale**: `game-rules.md` doesn't specify an initial facing; picking "away from the wall" avoids
+  the degenerate first move being an immediate wall-bump for most escape-cell positions, which would
+  read as a bug even though it's technically spec-compliant. This is a deterministic, testable rule
+  (Constitution Principle IV), not randomized.
+- **Alternatives considered**: Always default to North regardless of escape-cell position — rejected,
+  because on a wall segment facing away from North (e.g. the top wall) the hunter would start facing
+  directly into a wall, which is a poor first impression even if not strictly a rule violation.
+
+## 11. NEEDS CLARIFICATION items from spec.md carried forward
 
 - User Story 3 Scenario 4 (run summary/scoring) and Scenario 5 (difficulty presets) remain open.
   They do not block Phase 1 design for User Stories 1–2 and are out of scope for the first

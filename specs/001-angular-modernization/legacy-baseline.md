@@ -6,6 +6,15 @@ It exists so that `spec.md` can explicitly state which behaviors are preserved, 
 rather than the team re-deriving the rules from memory. Source of truth is the code itself; this is
 a reading, not a redesign.
 
+> **This document describes what the code does, not what it was supposed to do.**
+> `game-rules.md` in this same directory is the canonical, authoritative assignment brief this
+> project was originally built against, and it takes precedence over this document wherever they
+> disagree. Several behaviors documented below (free 4-directional movement instead of facing+turn,
+> no explicit "exit" action, the dead `wallAhead` message) are known divergences from that brief —
+> see `game-rules.md` §6 for the full comparison. Treat this file as an implementation reference for
+> the rules that *do* match the brief (board generation, death conditions, arrow-vs-Wumpus behavior),
+> not as the design authority.
+
 ## 1. Game Concept
 
 A single-player grid dungeon-crawler based on "Hunt the Wumpus". The player starts on a wall cell
