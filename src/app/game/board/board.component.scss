@@ -1,3 +1,6 @@
+@use '../../styles/colors' as *;
+@use '../../styles/board' as board;
+
 .board-screen {
   display: flex;
   flex-direction: column;
@@ -37,11 +40,102 @@
 
   p {
     margin: 0 0 0.25rem;
+    animation: fade-in-up 250ms ease-out;
+  }
+
+  .log-icon {
+    margin-right: 0.25em;
+  }
+
+  .perception-choque {
+    color: #ff8787;
+  }
+  .perception-grito {
+    color: #ffa94d;
+  }
+  .perception-glimmer {
+    color: #ffd43b;
+  }
+  .perception-breeze {
+    color: #74c0fc;
+  }
+  .perception-stench {
+    color: #a67c52;
   }
 }
 
-.board-row {
-  display: flex;
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.board-grid {
+  position: relative;
+  display: grid;
+}
+
+// The hunter and in-flight arrow are overlay elements positioned by board.component.ts's
+// CELL_SIZE_PX math (kept equal to $cell-size below), not per-cell children — see
+// cell.component.ts's doc comment for why.
+.hunter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: board.$cell-size;
+  height: board.$cell-size;
+  transition: transform 200ms ease;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 20%;
+    background: $hunter-color;
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  }
+
+  &.bumping {
+    animation: shake 300ms ease;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    margin-left: 0;
+  }
+  25% {
+    margin-left: -6px;
+  }
+  75% {
+    margin-left: 6px;
+  }
+}
+
+.arrow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: board.$cell-size;
+  height: board.$cell-size;
+  opacity: 0;
+  pointer-events: none;
+
+  // Points North by default, like the hunter marker, so both share ROTATION_DEG's mapping
+  // (board.component.ts) instead of needing a separate per-shape rotation offset.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 15% 42%;
+    background: #eee;
+    clip-path: polygon(35% 100%, 35% 40%, 10% 40%, 50% 0%, 90% 40%, 65% 40%, 65% 100%);
+  }
 }
 
 .controls,
@@ -63,11 +157,54 @@
 
 .end-of-round-dialog {
   background: #222;
-  border: 1px solid #555;
+  border: 2px solid #555;
   border-radius: 8px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   align-items: center;
+  animation: dialog-in 350ms ease-out;
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.outcome-death .end-of-round-dialog {
+  border-color: $death-color;
+  animation:
+    dialog-in 350ms ease-out,
+    outcome-shake 400ms ease-out 350ms;
+}
+
+.outcome-won .end-of-round-dialog {
+  border-color: $win-color;
+  box-shadow: 0 0 24px rgb(241 196 15 / 55%);
+}
+
+.outcome-exited .end-of-round-dialog {
+  border-color: $exit-color;
+}
+
+@keyframes outcome-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
 }

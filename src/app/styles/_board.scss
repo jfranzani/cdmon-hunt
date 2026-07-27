@@ -1,0 +1,5 @@
+// Single source of truth for the board's cell size. `board.component.ts`'s `CELL_SIZE_PX`
+// constant must be kept equal to this value — it positions the hunter/arrow overlays, which are
+// plain absolutely-positioned elements rather than Angular-templated per-cell children (that's
+// what lets them be single, persistent DOM nodes that CSS can animate between positions).
+$cell-size: 48px;

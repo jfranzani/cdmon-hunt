@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Direction, createCell } from '../../core/models/game';
+import { createCell } from '../../core/models/game';
 import { CellComponent } from './cell.component';
 
 describe('CellComponent', () => {
@@ -30,18 +30,14 @@ describe('CellComponent', () => {
     expect(el.classList).not.toContain('wall-bottom');
   });
 
-  it('renders the hunter marker only when the cell holds the hunter', () => {
-    expect(fixture.nativeElement.querySelector('.hunter')).toBeNull();
+  it('applies the escape marker only when the cell is the escape cell', () => {
+    let el: HTMLElement = fixture.nativeElement.querySelector('.cell');
+    expect(el.classList).not.toContain('escape');
 
-    fixture.componentRef.setInput(
-      'cell',
-      { ...fixture.componentInstance.cell(), hasPlayer: true },
-    );
-    fixture.componentRef.setInput('hunterFacing', Direction.East);
+    fixture.componentRef.setInput('cell', { ...fixture.componentInstance.cell(), isEscape: true });
     fixture.detectChanges();
 
-    const hunterEl: HTMLElement = fixture.nativeElement.querySelector('.hunter');
-    expect(hunterEl).toBeTruthy();
-    expect(hunterEl.classList).toContain('facing-east');
+    el = fixture.nativeElement.querySelector('.cell');
+    expect(el.classList).toContain('escape');
   });
 });

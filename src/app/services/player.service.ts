@@ -26,17 +26,20 @@ export class PlayerService {
 
   turnLeft(board: Board): void {
     board.log = [];
+    board.lastShot = null;
     board.hunter.facing = TURN_LEFT[board.hunter.facing];
   }
 
   turnRight(board: Board): void {
     board.log = [];
+    board.lastShot = null;
     board.hunter.facing = TURN_RIGHT[board.hunter.facing];
   }
 
   /** Moves the hunter one cell in its current facing, or reports "choque" if blocked. */
   advance(board: Board): void {
     board.log = [];
+    board.lastShot = null;
     const hunterCell = this.findHunterCell(board.cells);
     const nextCell = getAdjacentCell(board.cells, hunterCell, board.hunter.facing);
 
@@ -79,6 +82,7 @@ export class PlayerService {
   /** Fires an arrow in the hunter's current facing; pits don't affect its travel. */
   shoot(board: Board): void {
     board.log = [];
+    board.lastShot = null;
     if (board.hunter.arrows < 1) {
       this.pushLog(board, Perception.NoArrows);
       return;
@@ -86,7 +90,12 @@ export class PlayerService {
     board.hunter.arrows--;
     board.hunter.arrowsUsed++;
     const hunterCell = this.findHunterCell(board.cells);
-    this.fireArrow(board, hunterCell, board.hunter.facing);
+    const { cell: impactCell, hitWumpus } = this.fireArrow(board, hunterCell, board.hunter.facing);
+    board.lastShot = {
+      from: { x: hunterCell.coordinateX, y: hunterCell.coordinateY },
+      to: { x: impactCell.coordinateX, y: impactCell.coordinateY },
+      hitWumpus,
+    };
   }
 
   /** Only valid on the escape cell — the control is also disabled in the UI (FR-005). */
@@ -96,6 +105,7 @@ export class PlayerService {
 
   exit(board: Board): void {
     board.log = [];
+    board.lastShot = null;
     if (!this.canExit(board)) {
       return;
     }
@@ -108,18 +118,22 @@ export class PlayerService {
     }
   }
 
-  private fireArrow(board: Board, fromCell: Cell, direction: Direction): void {
+  private fireArrow(
+    board: Board,
+    fromCell: Cell,
+    direction: Direction,
+  ): { cell: Cell; hitWumpus: boolean } {
     const nextCell = getAdjacentCell(board.cells, fromCell, direction);
     if (!nextCell) {
       this.pushLog(board, Perception.ArrowHitWall);
-      return;
+      return { cell: fromCell, hitWumpus: false };
     }
     if (nextCell.isWumpus) {
       this.killWumpus(board.cells, nextCell);
       this.pushLog(board, Perception.Grito);
-      return;
+      return { cell: nextCell, hitWumpus: true };
     }
-    this.fireArrow(board, nextCell, direction);
+    return this.fireArrow(board, nextCell, direction);
   }
 
   private killWumpus(cells: Cell[][], wumpusCell: Cell): void {

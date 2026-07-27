@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-import { Cell, Direction } from '../../core/models/game';
+import { Cell } from '../../core/models/game';
 
 /**
- * Renders one cell's walls, escape marker, and (when occupied) the hunter with its facing
- * direction — purely via template bindings, no `nativeElement` mutation (FR-010, fixes
- * legacy-baseline.md §7.5). Perceptions (breeze/stench/glimmer) are intentionally not rendered
- * spatially here — game-rules.md §2 restricts them to the hunter's own cell, reported via the log.
+ * Renders one cell's walls and escape marker — purely via template bindings, no `nativeElement`
+ * mutation (FR-010, fixes legacy-baseline.md §7.5). Perceptions (breeze/stench/glimmer) are
+ * intentionally not rendered spatially here — game-rules.md §2 restricts them to the hunter's own
+ * cell, reported via the log. The hunter itself is a `BoardComponent`-owned overlay, not rendered
+ * per-cell, so it can be one persistent DOM element that CSS-transitions between cells (FR-012a) —
+ * see `board.component.ts`.
  */
 @Component({
   selector: 'app-cell',
@@ -17,10 +19,4 @@ import { Cell, Direction } from '../../core/models/game';
 })
 export class CellComponent {
   readonly cell = input.required<Cell>();
-  readonly hunterFacing = input<Direction | null>(null);
-
-  readonly facingClass = computed(() => {
-    const facing = this.hunterFacing();
-    return facing ? `facing-${facing.toLowerCase()}` : '';
-  });
 }

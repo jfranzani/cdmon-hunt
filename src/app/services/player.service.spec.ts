@@ -142,6 +142,7 @@ describe('PlayerService', () => {
       expect(board.log.map((l) => l.perception)).toEqual(['Grito']);
       expect(board.hunter.arrows).toBe(0);
       expect(board.hunter.arrowsUsed).toBe(1);
+      expect(board.lastShot).toEqual({ from: { x: 1, y: 1 }, to: { x: 2, y: 1 }, hitWumpus: true });
     });
 
     it('stops at a wall and reports the arrow-hit-wall message', () => {
@@ -149,6 +150,8 @@ describe('PlayerService', () => {
       service.shoot(board);
       expect(board.log.map((l) => l.perception)).toEqual(['ArrowHitWall']);
       expect(board.hunter.arrows).toBe(0);
+      // Travels two cells (to (1,0)) before the board edge stops it at the same coordinate.
+      expect(board.lastShot).toEqual({ from: { x: 1, y: 1 }, to: { x: 1, y: 0 }, hitWumpus: false });
     });
 
     it('is unaffected by a pit between the hunter and the Wumpus', () => {
@@ -159,11 +162,12 @@ describe('PlayerService', () => {
       expect(board.log.map((l) => l.perception)).toEqual(['ArrowHitWall']);
     });
 
-    it('does nothing and reports no arrows left when the hunter has zero arrows', () => {
+    it('does nothing, records no shot, and reports no arrows left when the hunter has zero arrows', () => {
       const board = buildBoard(Direction.East, 0);
       service.shoot(board);
       expect(board.log.map((l) => l.perception)).toEqual(['NoArrows']);
       expect(board.hunter.arrowsUsed).toBe(0);
+      expect(board.lastShot).toBeNull();
     });
   });
 

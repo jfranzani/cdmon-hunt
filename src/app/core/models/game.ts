@@ -134,18 +134,27 @@ export interface LogEntry {
   readonly perception: Perception;
 }
 
+export interface BoardCoordinate {
+  readonly x: number;
+  readonly y: number;
+}
+
+/** The most recent arrow's trajectory, for the arrow-travel animation (FR-012a). */
+export interface ArrowShot {
+  readonly from: BoardCoordinate;
+  readonly to: BoardCoordinate;
+  readonly hitWumpus: boolean;
+}
+
 export interface Board {
   cells: Cell[][];
   hunter: Hunter;
   log: LogEntry[];
   diedReason: string | null;
+  /** `null` except immediately after a shot — the UI clears it once it's animated. */
+  lastShot: ArrowShot | null;
 }
 
 export function createBoard(cells: Cell[][], hunter: Hunter): Board {
-  return { cells, hunter, log: [], diedReason: null };
-}
-
-export interface BoardCoordinate {
-  readonly x: number;
-  readonly y: number;
+  return { cells, hunter, log: [], diedReason: null, lastShot: null };
 }

@@ -1,12 +1,10 @@
 @use '../../styles/colors' as *;
+@use '../../styles/board' as board;
 
 .cell {
-  width: 48px;
-  height: 48px;
+  width: board.$cell-size;
+  height: board.$cell-size;
   box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border: 1px solid #444;
 }
 
@@ -25,24 +23,4 @@
 .escape {
   outline: 3px dashed $escape-color;
   outline-offset: -3px;
-}
-
-.hunter {
-  width: 60%;
-  height: 60%;
-  background: $wumpus-color;
-  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-
-  &.facing-north {
-    transform: rotate(0deg);
-  }
-  &.facing-east {
-    transform: rotate(90deg);
-  }
-  &.facing-south {
-    transform: rotate(180deg);
-  }
-  &.facing-west {
-    transform: rotate(270deg);
-  }
 }

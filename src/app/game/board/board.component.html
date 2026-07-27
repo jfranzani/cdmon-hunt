@@ -11,19 +11,22 @@
     </div>
 
     <div class="log" aria-live="polite">
-      @for (entry of board.log; track $index) {
-        <p>{{ entry.message }}</p>
+      @for (entry of board.log; track actionCount() + '-' + $index) {
+        <p [class]="'perception-' + entry.perception.toLowerCase()">
+          <span class="log-icon" aria-hidden="true">{{ perceptionIcon(entry.perception) }}</span>
+          {{ entry.message }}
+        </p>
       }
     </div>
 
-    <div class="board-grid">
+    <div class="board-grid" [style.grid-template-columns]="gridTemplateColumns()">
       @for (row of board.cells; track $index) {
-        <div class="board-row">
-          @for (cell of row; track cell.number) {
-            <app-cell [cell]="cell" [hunterFacing]="board.hunter.facing" />
-          }
-        </div>
+        @for (cell of row; track cell.number) {
+          <app-cell [cell]="cell" />
+        }
       }
+      <div class="hunter" [class.bumping]="isBumping()" [style.transform]="hunterTransform()"></div>
+      <div class="arrow" #arrowEl></div>
     </div>
 
     <div class="controls">
@@ -40,7 +43,7 @@
     </div>
 
     @if (isGameOver()) {
-      <div class="end-of-round">
+      <div class="end-of-round" [class]="outcomeClass()">
         <div class="end-of-round-dialog">
           <h2>{{ endOfRoundTitle() }}</h2>
           <p>{{ endOfRoundMessage() }}</p>

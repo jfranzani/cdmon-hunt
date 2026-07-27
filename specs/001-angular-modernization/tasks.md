@@ -152,24 +152,24 @@ engine, per FR-011a's animation requirements and `research.md` §7's layered app
 **Independent Test**: With Phase 3 complete, ship rendering-only changes and re-run every User Story 1
 acceptance scenario to confirm zero rule regressions, per `spec.md` User Story 2's Independent Test.
 
-- [ ] T025 [P] [US2] Replace the board layout with CSS Grid and a new visual language in SCSS,
+- [X] T025 [P] [US2] Replace the board layout with CSS Grid and a new visual language in SCSS,
       dropping Bootstrap grid classes (`src/app/game/board/board.component.scss`, `src/styles.scss`)
-- [ ] T026 [P] [US2] Produce upgraded sprite/CSS-drawn assets for the hunter (with facing), Wumpus,
+- [X] T026 [P] [US2] Produce upgraded sprite/CSS-drawn assets for the hunter (with facing), Wumpus,
       gold, breeze, and stench, replacing the legacy placeholder images (`src/assets/images/`)
-- [ ] T027 [US2] Add CSS transition/keyframe animations for turn (rotate), advance (slide), and
+- [X] T027 [US2] Add CSS transition/keyframe animations for turn (rotate), advance (slide), and
       wall-bump/"choque" (shake/recoil) — depends on T023, T025; satisfies FR-012a (turn/advance/
       wall-bump)
-- [ ] T028 [US2] Add CSS transition/keyframe animations for breeze/stench/glimmer reveal and the
+- [X] T028 [US2] Add CSS transition/keyframe animations for breeze/stench/glimmer reveal and the
       three end-of-round outcomes (death, win, exit-without-gold) — depends on T022, T025; satisfies
       FR-012a (end-of-round outcomes)
-- [ ] T029 [US2] Implement the arrow-travel animation with the Web Animations API
+- [X] T029 [US2] Implement the arrow-travel animation with the Web Animations API
       (`element.animate()`), sequencing cell-by-cell based on the actual distance traveled before
       resolving into the wall-hit or Wumpus-hit/scream outcome — depends on T019, T022; satisfies
       FR-012a (shoot), per `research.md` §7
-- [ ] T030 [US2] Wrap the configuration↔play screen navigation in the View Transitions API
+- [X] T030 [US2] Wrap the configuration↔play screen navigation in the View Transitions API
       (`document.startViewTransition`), feature-detected with a non-animated fallback — depends on
       T024; satisfies the FR-012a screen-transition requirement and SC-006's fallback check
-- [ ] T031 [US2] Verify and adjust the mobile-width layout (~375px) for the board, buttons, and log
+- [X] T031 [US2] Verify and adjust the mobile-width layout (~375px) for the board, buttons, and log
       so nothing scrolls horizontally or overlaps — depends on T025; satisfies SC-004
 
 **Checkpoint**: User Stories 1 and 2 both work independently — visuals and animation upgraded, engine

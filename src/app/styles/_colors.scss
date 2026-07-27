@@ -1,9 +1,10 @@
+// Only colors actually rendered spatially live here. Breeze/stench/glimmer/pit/Wumpus/gold are
+// deliberately NOT drawn on the board — game-rules.md §2 restricts perceptions to the hunter's own
+// cell, reported via the log (see PERCEPTION_ICONS in board.component.ts for their log treatment).
 $wall-color: burlywood;
-$escape-color: red;
-$gold-color: gold;
-$wumpus-color: #2f9e44;
-$clear-path-color: grey;
-$pit-color: black;
 $wall-border: 4px;
-$breeze-color: #109dfa;
-$stink-color: brown;
+$escape-color: #e03131;
+$hunter-color: #f1c40f;
+$death-color: #e03131;
+$win-color: #f1c40f;
+$exit-color: #adb5bd;
