@@ -69,13 +69,34 @@ starts, per Constitution Principle III (spec-driven delivery) and V (simplicity)
 
 ## 7. Animation approach (User Story 2)
 
-- **Decision**: CSS transitions/animations (via Angular's native `[class]`/`@if`/`@for` bindings and
-  plain CSS keyframes) rather than `@angular/animations`.
-- **Rationale**: `@angular/animations` adds a runtime dependency and DI providers for what is a small
-  set of discrete state transitions (move, death, win, gold pickup); CSS-only keeps the bundle
-  smaller and is sufficient for a turn-based game (Principle V, SC-004/SC-005 build-quality goals).
-- **Alternatives considered**: `@angular/animations` package — rejected as unnecessary overhead;
-  revisit only if a specific transition proves impractical in pure CSS.
+- **Decision**: Native web-platform animation, layered by how much control each case needs, rather
+  than `@angular/animations`:
+  1. **CSS transitions/keyframes** (via Angular's native `[class]`/`@if`/`@for` bindings) as the
+     default for simple state-driven feedback — turning (rotate the hunter marker), advancing
+     (slide into the new cell), wall-bump/"choque" (a short shake/recoil), breeze/stench/glimmer
+     reveal (fade/pulse-in), death (a distinct death treatment per cause), win/exit (a distinct
+     celebratory/neutral treatment for the two outcomes).
+  2. **Web Animations API** (`element.animate()`) where a sequence needs JS-driven control that
+     pure CSS can't express cleanly — e.g. an arrow visibly traveling cell-by-cell before resolving
+     into a wall-hit or Wumpus-hit/scream outcome, where the number of cells (and therefore the
+     animation's length) is only known at runtime.
+  3. **View Transitions API** (`document.startViewTransition`), feature-detected with a plain
+     (non-animated) fallback when unsupported, for cross-state transitions that CSS alone struggles
+     with — the config-screen ↔ play-screen navigation, and swapping in the end-of-round modal.
+  `@angular/animations` is not added by default under any of these; it remains available only if a
+  specific transition genuinely can't be done with the above (to be justified inline in `tasks.md`/
+  implementation if it comes up, per Constitution Principle V).
+- **Rationale**: The user explicitly asked for the game to use modern HTML5/CSS3-or-later animation
+  capabilities, with a distinct animation per player action (turn, advance, wall-bump, shoot, death,
+  win/exit) rather than a single generic transition. The native-platform stack (CSS + WAAPI + View
+  Transitions) delivers that directly, is exactly the "latest CSS3 or later" tooling requested,
+  avoids `@angular/animations`' runtime/DI overhead (Principle V, SC-004/SC-005 build-quality goals),
+  and each layer is only reached for when the simpler one below it can't express the effect.
+- **Alternatives considered**: `@angular/animations` package — rejected as unnecessary overhead for
+  effects the native platform already covers well; CSS-only with no WAAPI/View Transitions — rejected
+  because the runtime-length arrow-travel animation and the screen-to-screen transitions are
+  genuinely awkward in pure CSS, and the user asked for "latest features" specifically, which these
+  two APIs represent more than CSS transitions alone.
 
 ## 8. Configuration validation (FR-011)
 

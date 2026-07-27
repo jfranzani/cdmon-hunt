@@ -121,12 +121,28 @@ this story is testable purely by visual/UX review plus a full regression of Stor
    and facing direction, and (once discovered by the player) breeze/stench/glimmer indicators are
    rendered via Angular template bindings (`[class]`/`[ngClass]`/signals), not manual `nativeElement`
    mutation.
-2. **Given** a turn, advance, wall-bump, shot, death, or win/exit event, **When** it occurs, **Then**
-   the UI provides a visibly distinct transition/animation for that event (exact treatment decided in
-   `plan.md`).
-3. **Given** the game is opened on a narrow (mobile-width) viewport, **When** the board renders,
+2. **Given** the hunter turns left or right, **When** the action resolves, **Then** the hunter's
+   marker visibly rotates to the new facing direction rather than snapping instantly.
+3. **Given** the hunter advances into an open cell, **When** the action resolves, **Then** the hunter
+   visibly moves/slides into the new cell rather than teleporting.
+4. **Given** the hunter advances into a wall or the board edge ("choque"), **When** the action
+   resolves, **Then** the UI plays a short, visibly distinct bump/recoil animation and the hunter does
+   not move.
+5. **Given** the hunter shoots an arrow, **When** the action resolves, **Then** the arrow is animated
+   traveling cell-by-cell in the facing direction before resolving into a wall-hit or Wumpus-hit
+   (scream) outcome — the animation's length reflects the actual distance traveled, not a fixed
+   duration.
+6. **Given** the hunter dies (Wumpus or pit) or the round ends via "exit" (with or without the gold),
+   **When** the end-of-round state is reached, **Then** each of the three outcomes (death, win,
+   exited-without-gold) has its own visibly distinct animated treatment before or alongside the
+   end-of-round modal.
+7. **Given** the player navigates between the configuration screen and the play screen, **When** that
+   navigation happens, **Then** the transition is animated using the View Transitions API where the
+   browser supports it, and degrades to an instant (non-animated) screen swap where it doesn't —
+   never a broken or blank intermediate state.
+8. **Given** the game is opened on a narrow (mobile-width) viewport, **When** the board renders,
    **Then** the layout remains usable without horizontal scrolling or overlapping controls.
-4. **Given** the existing sprite set (`hunter.png`, `wumpus.png`, `gold.jpg`, `breeze.jpg`,
+9. **Given** the existing sprite set (`hunter.png`, `wumpus.png`, `gold.jpg`, `breeze.jpg`,
    `stink.png`, `stinkAndBreeze.png`), **When** the new UI ships, **Then** these are replaced or
    visibly upgraded (not reused as-is), and the hunter's sprite/marker visibly reflects its current
    facing direction — exact art direction is a `plan.md`/implementation decision, not fixed by this
@@ -229,10 +245,15 @@ FR-007) plus its validation (FR-011) is the only configuration mechanism in this
   and reject configurations that are non-positive or that make legal pit placement impossible, with a
   visible error instead of a silent failure or runtime exception. *(Beyond the brief; fixes
   `legacy-baseline.md` §7.3 and the corresponding edge case above; User Story 3.)*
-- **FR-012**: The system MUST present an upgraded visual treatment (art/animation/layout) for the
-  board, hunter (including facing direction), and game events, replacing the original Bootstrap-grid-
-  plus-static-image presentation, and MUST remain usable on mobile-width viewports, without removing
-  the FR-008 button/text-output floor. *(New — User Story 2.)*
+- **FR-012**: The system MUST present an upgraded visual treatment (art/layout) for the board and
+  hunter (including facing direction), replacing the original Bootstrap-grid-plus-static-image
+  presentation, and MUST remain usable on mobile-width viewports, without removing the FR-008 button/
+  text-output floor. *(New — User Story 2.)*
+- **FR-012a**: The system MUST animate turn, advance, wall-bump ("choque"), shoot/arrow-travel, and
+  each end-of-round outcome (death, win, exit-without-gold) as visibly distinct effects, using modern
+  native web-platform animation (CSS transitions/keyframes, the Web Animations API, and the View
+  Transitions API for screen-to-screen navigation with a non-animated fallback where unsupported) —
+  not `@angular/animations` by default. *(New — User Story 2; see `research.md` §7.)*
 - **FR-013**: The system MUST have unit tests covering, at minimum: the board-generation invariants
   in `legacy-baseline.md` §8, the facing/turn/advance state machine (FR-002), the shoot-in-facing-
   direction collision logic (FR-004), and the exit/win/non-win outcome (FR-005) — independent of any
@@ -276,6 +297,10 @@ FR-007) plus its validation (FR-011) is the only configuration mechanism in this
   mobile-width viewport (~375px wide) without horizontal scrolling.
 - **SC-005**: `ng build` produces zero TypeScript errors under strict mode and zero use of
   `NgModule`-based feature modules.
+- **SC-006**: Each of the six actions/outcomes in FR-012a (turn, advance, wall-bump, shoot, and the
+  three end-of-round outcomes) has a distinguishable animation, verified in a browser that supports
+  the View Transitions API and in one that doesn't (or with it feature-detected off), confirming the
+  fallback never breaks or blanks the screen.
 
 ## Assumptions
 

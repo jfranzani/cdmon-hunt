@@ -25,7 +25,8 @@ presentation layer — a minimal button + text-output interface per `game-rules.
 **Language/Version**: TypeScript (strict mode), targeting the TS version bundled with Angular 22.
 
 **Primary Dependencies**: `@angular/core` / `@angular/router` / `@angular/forms` @ 22.x (standalone
-APIs, signals). No `@angular/animations` (CSS-only, see `research.md` §7). No `ng-bootstrap`, no
+APIs, signals). No `@angular/animations` — animation uses native CSS transitions/keyframes, the Web
+Animations API, and the View Transitions API instead, see `research.md` §7. No `ng-bootstrap`, no
 `bootstrap`, no `jquery`, no `@fortawesome/*` unless User Story 2 implementation decides to keep
 FontAwesome for icons only (non-blocking, cosmetic decision — see `research.md` §5).
 
@@ -66,7 +67,7 @@ a new large system.
 | II. Modern, Idiomatic Angular | Plan targets Angular 22, standalone-only, signals, strict TS, drops jQuery (Technical Context above). | PASS |
 | III. Spec-Driven Delivery | This plan follows an approved `spec.md`; `tasks.md` will be generated via `/speckit-tasks` before any implementation starts — no code is written as part of this planning pass. | PASS |
 | IV. Test Discipline | FR-013 requires unit tests for board-generation invariants, the facing/turn/advance state machine, shoot-in-facing collision, and the exit/win/non-win outcome; Testing section keeps Karma/Jasmine so existing test patterns (`*.spec.ts` already present for every service) carry forward. | PASS |
-| V. Simplicity & YAGNI | State management stays signals-in-services (no NgRx); UI kit dropped rather than swapped for another kit; animations are CSS-only rather than adding `@angular/animations` (`research.md` §3–4, §7). | PASS |
+| V. Simplicity & YAGNI | State management stays signals-in-services (no NgRx); UI kit dropped rather than swapped for another kit; animation uses native CSS/WAAPI/View Transitions layered by need rather than adding `@angular/animations` (`research.md` §3–4, §7). | PASS |
 | VI. Visual & UX Quality | FR-008 requires the button + text-output floor as the primary interface (not just keyboard); FR-012/SC-004 require mobile-width usability on top of it; manual browser verification is required before any Story 1/2 task is "done" (enforced at `tasks.md`/implementation time, not by this plan alone). | PASS (deferred enforcement to implementation) |
 
 No violations requiring `Complexity Tracking` justification.
