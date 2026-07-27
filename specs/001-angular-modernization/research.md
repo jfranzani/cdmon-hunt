@@ -37,24 +37,51 @@ starts, per Constitution Principle III (spec-driven delivery) and V (simplicity)
 
 ## 4. UI component library / styling
 
-- **Decision**: Drop `ng-bootstrap` + Bootstrap + jQuery(-adjacent) dependencies. Use plain SCSS with
-  CSS Grid for the board layout, native `<dialog>` element (or a small bespoke modal component) for
-  the end-game modal, replacing `NgbModal`.
+- **Decision**: Drop `ng-bootstrap` + Bootstrap + jQuery(-adjacent) dependencies. Use CSS Grid for the
+  board layout, native `<dialog>`-style overlay markup for the end-game modal, replacing `NgbModal`.
+  Component structure/typography/color/spacing is expressed with **Tailwind CSS v4** utility classes
+  in templates; component `.scss` files are kept only for what utility classes can't express — the
+  `CELL_SIZE_PX`-positioned hunter/arrow overlays and their keyframe animations (see §7). Tailwind's
+  design tokens (`@theme` block in `src/styles.css`, a dungeon color palette plus two font families)
+  are the single source of truth for the visual language.
 - **Rationale**: Constitution explicitly forbids jQuery; `ng-bootstrap`'s own peer dependency chain
-  and Bootstrap's utility-class approach add weight not needed for a single-screen game UI. CSS Grid
-  is a natural fit for the board (already conceptually a grid) and avoids a UI kit dependency
-  entirely, maximizing control over the "improved graphics" goal (User Story 2).
+  and Bootstrap's utility-class approach add weight not needed for a single-screen game UI, and both
+  ship generic component chrome that works against a distinctive visual identity. The initial plan
+  (plain hand-written SCSS, no utility framework) held through User Story 1 and the first pass of User
+  Story 2, but direct user feedback on the shipped UI ("the ui is awful") made it clear hand-rolled
+  SCSS wasn't converging on a polished result fast enough. Tailwind was added as a middle ground: it
+  keeps bundle size and dependency surface small (no component runtime, just a build-time utility
+  generator) while giving enough utility coverage to iterate quickly on layout/spacing/color without
+  writing bespoke SCSS for every element — reserving custom SCSS for the handful of things Tailwind
+  can't do (the overlay positioning math, custom keyframes).
 - **Alternatives considered**: Keep `ng-bootstrap` (lower migration effort) — rejected because the
   modal/tooltip components are the only things used from it, and User Story 2 wants a distinctive
   visual identity, not generic Bootstrap chrome. Angular Material — rejected, same "generic UI kit"
-  concern, larger dependency for a small surface area.
+  concern, larger dependency for a small surface area. Continuing with plain hand-written SCSS only —
+  rejected after the "ui is awful" feedback as too slow to iterate with for a single-developer visual
+  polish pass. Bootstrap/Material were rejected again at this point for the same reasons as above; a
+  utility-first framework (no bundled components) was the fit that didn't reintroduce that risk.
 
-## 5. Icons
+## 5. Icons and fonts
 
-- **Decision**: Keep `@fortawesome/*` for now, or replace with inline SVG per FR-012's discretion;
-  final call deferred to implementation of User Story 2 (this is an art-direction detail, not an
-  architectural one — no blocking decision needed for `plan.md`).
-- **Rationale**: Icons are cosmetic and don't affect the Constitution Check or project structure.
+- **Decision**: Emoji glyphs (🏹, 🧭, 💀, etc.) are used for in-game iconography instead of an icon
+  library — no `@fortawesome/*` or equivalent dependency. Typography uses two self-hosted variable
+  web fonts: Cinzel (headings, `font-display`) and Inter (body text, `font-body`), declared via
+  `@font-face` in `src/styles.css` and served from `src/assets/fonts/`, rather than linked from the
+  Google Fonts CDN.
+- **Rationale**: Emoji are cosmetic and don't affect the Constitution Check or project structure —
+  they cover the small, fixed set of perceptions/actions this game needs without a font-icon or SVG
+  sprite dependency. Fonts are self-hosted rather than CDN-linked for the same "minimize external
+  runtime dependencies" reasoning already applied elsewhere (see §7's native-platform-first stance on
+  animation): one less third-party origin the page depends on at runtime, no flash of unstyled text
+  waiting on that origin, and no failure mode tied to a network the browser can't reach. Only the
+  Latin subset is bundled (sufficient for this app's Spanish copy), and each family resolved to a
+  single variable-font file covering every weight the UI uses, so self-hosting added exactly two
+  files.
+- **Alternatives considered**: `@fortawesome/*` icon font — rejected as unnecessary dependency weight
+  for a handful of glyphs emoji already cover natively. Google Fonts `<link>` tags — tried first, but
+  dropped after real-browser verification surfaced a connection failure loading fonts.googleapis.com
+  in this environment; self-hosting sidesteps that failure mode entirely regardless of its root cause.
 
 ## 6. Testing framework
 

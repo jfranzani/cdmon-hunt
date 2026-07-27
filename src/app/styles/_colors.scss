@@ -1,10 +1,15 @@
 // Only colors actually rendered spatially live here. Breeze/stench/glimmer/pit/Wumpus/gold are
 // deliberately NOT drawn on the board — game-rules.md §2 restricts perceptions to the hunter's own
 // cell, reported via the log (see PERCEPTION_ICONS in board.component.ts for their log treatment).
-$wall-color: burlywood;
+//
+// Kept equal by hand to the matching `--color-*` custom properties in `src/styles.scss`'s
+// `@theme` block — component-scoped Sass variables can't reference Tailwind's `@theme` tokens
+// directly, since these drive dynamically-positioned/animated elements rather than static
+// Tailwind utility classes.
+$wall-color: #4a3d2e; // --color-dungeon-600
 $wall-border: 4px;
-$escape-color: #e03131;
-$hunter-color: #f1c40f;
-$death-color: #e03131;
-$win-color: #f1c40f;
-$exit-color: #adb5bd;
+$escape-color: #d4af37; // --color-torch
+$hunter-color: #f4d35e; // --color-torch-bright
+$death-color: #ef4444; // --color-blood-bright
+$win-color: #f4d35e; // --color-torch-bright
+$exit-color: #b3a789; // --color-parchment-dim

@@ -31,7 +31,7 @@
               },
               "src/favicon.ico"
             ],
-            "styles": ["src/styles.scss"],
+            "styles": ["src/styles.css"],
             "scripts": []
           },
           "configurations": {
@@ -84,7 +84,7 @@
               },
               "src/favicon.ico"
             ],
-            "styles": ["src/styles.scss"],
+            "styles": ["src/styles.css"],
             "scripts": []
           }
         },

@@ -1,54 +1,139 @@
 @if (board(); as board) {
-  <div class="board-screen">
-    <h1>HUNT THE WUMPUS</h1>
-    <p class="keyboard-hint">
-      Teclado: <kbd>&uarr;</kbd> avanzar · <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> girar · <kbd>Enter</kbd> disparar
+  <div class="flex min-h-screen flex-col items-center gap-4 p-4 sm:p-6">
+    <h1 class="text-center font-display text-3xl font-bold tracking-wide text-torch">
+      Hunt the Wumpus
+    </h1>
+    <p class="text-center text-xs text-parchment-dim sm:text-sm">
+      Teclado:
+      <kbd class="rounded border border-dungeon-600 bg-dungeon-800 px-1.5 py-0.5 font-body">&uarr;</kbd>
+      avanzar ·
+      <kbd class="rounded border border-dungeon-600 bg-dungeon-800 px-1.5 py-0.5 font-body">&larr;</kbd>/<kbd
+        class="rounded border border-dungeon-600 bg-dungeon-800 px-1.5 py-0.5 font-body"
+        >&rarr;</kbd
+      >
+      girar ·
+      <kbd class="rounded border border-dungeon-600 bg-dungeon-800 px-1.5 py-0.5 font-body">Enter</kbd> disparar
     </p>
 
-    <div class="status">
-      <span>Flechas: {{ board.hunter.arrows }}</span>
-      <span>Orientación: {{ board.hunter.facing }}</span>
+    <div class="flex gap-3 text-sm font-semibold sm:text-base">
+      <span class="rounded-full border border-dungeon-600 bg-dungeon-800 px-3 py-1">
+        🏹 {{ board.hunter.arrows }}
+      </span>
+      <span class="rounded-full border border-dungeon-600 bg-dungeon-800 px-3 py-1">
+        🧭 {{ board.hunter.facing }}
+      </span>
     </div>
 
-    <div class="log" aria-live="polite">
+    <div
+      class="log w-full max-w-md overflow-y-auto rounded-lg border border-dungeon-600 bg-dungeon-800/80 p-3 text-sm"
+      aria-live="polite"
+    >
       @for (entry of board.log; track actionCount() + '-' + $index) {
-        <p [class]="'perception-' + entry.perception.toLowerCase()">
-          <span class="log-icon" aria-hidden="true">{{ perceptionIcon(entry.perception) }}</span>
+        <p [class]="perceptionColorClass(entry.perception)" class="m-0 mb-1">
+          <span class="mr-1" aria-hidden="true">{{ perceptionIcon(entry.perception) }}</span>
           {{ entry.message }}
         </p>
       }
     </div>
 
-    <div class="board-grid" [style.grid-template-columns]="gridTemplateColumns()">
-      @for (row of board.cells; track $index) {
-        @for (cell of row; track cell.number) {
-          <app-cell [cell]="cell" />
+    <div class="rounded-lg border-2 border-dungeon-600 bg-dungeon-900/60 p-2 shadow-xl shadow-black/50">
+      <div class="board-grid" [style.grid-template-columns]="gridTemplateColumns()">
+        @for (row of board.cells; track $index) {
+          @for (cell of row; track cell.number) {
+            <app-cell [cell]="cell" />
+          }
         }
-      }
-      <div class="hunter" [class.bumping]="isBumping()" [style.transform]="hunterTransform()"></div>
-      <div class="arrow" #arrowEl></div>
+        <div class="hunter" [class.bumping]="isBumping()" [style.transform]="hunterTransform()"></div>
+        <div class="arrow" #arrowEl></div>
+      </div>
     </div>
 
-    <div class="controls">
-      <button type="button" (click)="turnLeft()" [disabled]="isGameOver()">Girar Izquierda</button>
-      <button type="button" (click)="advance()" [disabled]="isGameOver()">Avanzar</button>
-      <button type="button" (click)="turnRight()" [disabled]="isGameOver()">Girar Derecha</button>
-      <button type="button" (click)="shoot()" [disabled]="isGameOver()">Disparar Flecha</button>
-      <button type="button" (click)="exit()" [disabled]="isGameOver() || !canExit()">Salir</button>
+    <div class="flex flex-wrap justify-center gap-2">
+      <button
+        type="button"
+        (click)="turnLeft()"
+        [disabled]="isGameOver()"
+        class="rounded border border-dungeon-600 bg-dungeon-800 px-3 py-2 text-sm font-medium transition hover:bg-dungeon-700 disabled:opacity-40"
+      >
+        ↺ Girar Izquierda
+      </button>
+      <button
+        type="button"
+        (click)="advance()"
+        [disabled]="isGameOver()"
+        class="rounded bg-gradient-to-b from-torch-bright to-torch px-4 py-2 text-sm font-semibold text-dungeon-950 transition hover:brightness-110 disabled:opacity-40 disabled:hover:brightness-100"
+      >
+        ↑ Avanzar
+      </button>
+      <button
+        type="button"
+        (click)="turnRight()"
+        [disabled]="isGameOver()"
+        class="rounded border border-dungeon-600 bg-dungeon-800 px-3 py-2 text-sm font-medium transition hover:bg-dungeon-700 disabled:opacity-40"
+      >
+        ↻ Girar Derecha
+      </button>
+      <button
+        type="button"
+        (click)="shoot()"
+        [disabled]="isGameOver()"
+        class="rounded border border-dungeon-600 bg-dungeon-800 px-3 py-2 text-sm font-medium transition hover:bg-dungeon-700 disabled:opacity-40"
+      >
+        🏹 Disparar Flecha
+      </button>
+      <button
+        type="button"
+        (click)="exit()"
+        [disabled]="isGameOver() || !canExit()"
+        class="rounded border border-torch bg-dungeon-800 px-3 py-2 text-sm font-medium text-torch transition hover:bg-dungeon-700 disabled:border-dungeon-600 disabled:text-parchment-dim disabled:opacity-40"
+      >
+        🚪 Salir
+      </button>
     </div>
 
-    <div class="buttons">
-      <button type="button" (click)="playAgain()">Refrescar Tablero</button>
-      <button type="button" (click)="goToSettings()">Volver a la configuración</button>
+    <div class="flex flex-wrap justify-center gap-2 text-xs">
+      <button
+        type="button"
+        (click)="playAgain()"
+        class="rounded px-2 py-1 text-parchment-dim underline-offset-2 transition hover:text-parchment hover:underline"
+      >
+        Refrescar Tablero
+      </button>
+      <button
+        type="button"
+        (click)="goToSettings()"
+        class="rounded px-2 py-1 text-parchment-dim underline-offset-2 transition hover:text-parchment hover:underline"
+      >
+        Volver a la configuración
+      </button>
     </div>
 
     @if (isGameOver()) {
-      <div class="end-of-round" [class]="outcomeClass()">
-        <div class="end-of-round-dialog">
-          <h2>{{ endOfRoundTitle() }}</h2>
-          <p>{{ endOfRoundMessage() }}</p>
-          <button type="button" (click)="playAgain()">Jugar de nuevo</button>
-          <button type="button" (click)="goToSettings()">Cambiar la configuración</button>
+      <div
+        class="end-of-round fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        [class]="outcomeClass()"
+      >
+        <div
+          class="end-of-round-dialog flex flex-col items-center gap-3 rounded-lg border-2 bg-dungeon-900 p-8 text-center shadow-2xl"
+        >
+          <h2 class="font-display text-2xl font-bold">{{ endOfRoundTitle() }}</h2>
+          <p class="text-parchment-dim">{{ endOfRoundMessage() }}</p>
+          <div class="mt-2 flex gap-2">
+            <button
+              type="button"
+              (click)="playAgain()"
+              class="rounded bg-gradient-to-b from-torch-bright to-torch px-4 py-2 text-sm font-semibold text-dungeon-950 transition hover:brightness-110"
+            >
+              Jugar de nuevo
+            </button>
+            <button
+              type="button"
+              (click)="goToSettings()"
+              class="rounded border border-dungeon-600 bg-dungeon-800 px-4 py-2 text-sm font-medium transition hover:bg-dungeon-700"
+            >
+              Cambiar la configuración
+            </button>
+          </div>
         </div>
       </div>
     }

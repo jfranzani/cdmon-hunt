@@ -57,6 +57,19 @@ const PERCEPTION_ICONS: Readonly<Partial<Record<Perception, string>>> = {
   [Perception.Start]: '🕯️',
 };
 
+/** Presentation-only Tailwind text-color utility per perception, same split as PERCEPTION_ICONS. */
+const PERCEPTION_COLOR_CLASS: Readonly<Partial<Record<Perception, string>>> = {
+  [Perception.Choque]: 'text-red-400',
+  [Perception.Grito]: 'text-orange-400',
+  [Perception.WumpusDeath]: 'text-red-400',
+  [Perception.PitDeath]: 'text-red-400',
+  [Perception.Glimmer]: 'text-torch-bright',
+  [Perception.Won]: 'text-torch-bright',
+  [Perception.Breeze]: 'text-sky-400',
+  [Perception.Stench]: 'text-amber-600',
+};
+const DEFAULT_PERCEPTION_COLOR_CLASS = 'text-parchment-dim';
+
 /**
  * The play screen: signals-driven board state, the five required command buttons, and the
  * text/log output area — the minimal interface game-rules.md §7 requires (FR-008) — plus the
@@ -148,6 +161,10 @@ export class BoardComponent {
 
   perceptionIcon(perception: Perception): string {
     return PERCEPTION_ICONS[perception] ?? '';
+  }
+
+  perceptionColorClass(perception: Perception): string {
+    return PERCEPTION_COLOR_CLASS[perception] ?? DEFAULT_PERCEPTION_COLOR_CLASS;
   }
 
   advance(): void {

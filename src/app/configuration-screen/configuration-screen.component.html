@@ -1,23 +1,65 @@
-<div class="configuration-screen">
-  <h1>HUNT THE WUMPUS</h1>
-  <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
-    <div class="field">
-      <label for="cellsX">Cantidad de Columnas</label>
-      <input id="cellsX" type="number" min="1" formControlName="cellsX" />
-    </div>
-    <div class="field">
-      <label for="cellsY">Cantidad de Filas</label>
-      <input id="cellsY" type="number" min="1" formControlName="cellsY" />
-    </div>
-    <div class="field">
-      <label for="pits">Cantidad de Pozos</label>
-      <input id="pits" type="number" min="0" formControlName="pits" />
-    </div>
-    <div class="field">
-      <label for="arrows">Cantidad de Flechas</label>
-      <input id="arrows" type="number" min="0" formControlName="arrows" />
-    </div>
+<div class="flex min-h-screen items-center justify-center p-4">
+  <div
+    class="w-full max-w-sm rounded-lg border border-dungeon-600 bg-dungeon-900/80 p-8 shadow-2xl shadow-black/60 backdrop-blur"
+  >
+    <h1
+      class="mb-1 text-center font-display text-3xl font-bold tracking-wide text-torch"
+    >
+      Hunt the Wumpus
+    </h1>
+    <p class="mb-6 text-center text-sm text-parchment-dim">
+      Configura la mazmorra antes de entrar
+    </p>
 
-    <button type="submit" [disabled]="settingsForm.invalid">JUGAR</button>
-  </form>
+    <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <label for="cellsX" class="text-sm font-medium text-parchment-dim">Cantidad de Columnas</label>
+        <input
+          id="cellsX"
+          type="number"
+          min="1"
+          formControlName="cellsX"
+          class="rounded border border-dungeon-600 bg-dungeon-800 px-3 py-2 text-parchment outline-none focus:border-torch focus:ring-1 focus:ring-torch"
+        />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="cellsY" class="text-sm font-medium text-parchment-dim">Cantidad de Filas</label>
+        <input
+          id="cellsY"
+          type="number"
+          min="1"
+          formControlName="cellsY"
+          class="rounded border border-dungeon-600 bg-dungeon-800 px-3 py-2 text-parchment outline-none focus:border-torch focus:ring-1 focus:ring-torch"
+        />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="pits" class="text-sm font-medium text-parchment-dim">Cantidad de Pozos</label>
+        <input
+          id="pits"
+          type="number"
+          min="0"
+          formControlName="pits"
+          class="rounded border border-dungeon-600 bg-dungeon-800 px-3 py-2 text-parchment outline-none focus:border-torch focus:ring-1 focus:ring-torch"
+        />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="arrows" class="text-sm font-medium text-parchment-dim">Cantidad de Flechas</label>
+        <input
+          id="arrows"
+          type="number"
+          min="0"
+          formControlName="arrows"
+          class="rounded border border-dungeon-600 bg-dungeon-800 px-3 py-2 text-parchment outline-none focus:border-torch focus:ring-1 focus:ring-torch"
+        />
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="settingsForm.invalid"
+        class="mt-2 rounded bg-gradient-to-b from-torch-bright to-torch px-4 py-2.5 font-display font-semibold tracking-wide text-dungeon-950 shadow-md transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:brightness-100"
+      >
+        JUGAR
+      </button>
+    </form>
+  </div>
 </div>

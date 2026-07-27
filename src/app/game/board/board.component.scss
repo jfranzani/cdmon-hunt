@@ -1,67 +1,12 @@
 @use '../../styles/colors' as *;
 @use '../../styles/board' as board;
 
-.board-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-}
+// Structural layout, typography, and color are handled by Tailwind utility classes in the
+// template. What's left here is the stuff Tailwind can't express: the CELL_SIZE_PX-positioned
+// overlay elements (board.component.ts) and their keyframe animations.
 
-.keyboard-hint {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #aaa;
-
-  kbd {
-    background: #333;
-    border: 1px solid #555;
-    border-radius: 3px;
-    padding: 0 0.35em;
-  }
-}
-
-.status {
-  display: flex;
-  gap: 1.5rem;
-  font-weight: bold;
-}
-
-.log {
-  width: min(100%, 480px);
-  min-height: 4rem;
-  max-height: 8rem;
-  overflow-y: auto;
-  background: #222;
-  border: 1px solid #555;
-  border-radius: 4px;
-  padding: 0.5rem;
-
-  p {
-    margin: 0 0 0.25rem;
-    animation: fade-in-up 250ms ease-out;
-  }
-
-  .log-icon {
-    margin-right: 0.25em;
-  }
-
-  .perception-choque {
-    color: #ff8787;
-  }
-  .perception-grito {
-    color: #ffa94d;
-  }
-  .perception-glimmer {
-    color: #ffd43b;
-  }
-  .perception-breeze {
-    color: #74c0fc;
-  }
-  .perception-stench {
-    color: #a67c52;
-  }
+.log p {
+  animation: fade-in-up 250ms ease-out;
 }
 
 @keyframes fade-in-up {
@@ -138,33 +83,9 @@
   }
 }
 
-.controls,
-.buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.end-of-round {
-  position: fixed;
-  inset: 0;
-  background: rgb(0 0 0 / 70%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .end-of-round-dialog {
-  background: #222;
-  border: 2px solid #555;
-  border-radius: 8px;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  align-items: center;
   animation: dialog-in 350ms ease-out;
+  border-color: $exit-color;
 }
 
 @keyframes dialog-in {
@@ -188,10 +109,6 @@
 .outcome-won .end-of-round-dialog {
   border-color: $win-color;
   box-shadow: 0 0 24px rgb(241 196 15 / 55%);
-}
-
-.outcome-exited .end-of-round-dialog {
-  border-color: $exit-color;
 }
 
 @keyframes outcome-shake {

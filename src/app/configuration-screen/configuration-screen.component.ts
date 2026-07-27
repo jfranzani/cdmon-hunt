@@ -10,7 +10,6 @@ import { StorageService } from '../services/storage.service';
   standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './configuration-screen.component.html',
-  styleUrl: './configuration-screen.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfigurationScreenComponent {

@@ -1,0 +1,76 @@
+@import 'tailwindcss';
+
+/* Self-hosted rather than linked from Google Fonts' CDN: one less external runtime dependency
+   (matches the project's native-platform-first approach elsewhere — see research.md §7 on
+   animation), no flash-of-unstyled-text while a third-party origin responds, and no failure mode
+   tied to a network the browser can't reach. Only the Latin subset is bundled (fine for the
+   Spanish copy this app uses — Spanish's accented characters are within Latin-1 Supplement); both
+   are variable-font files, so one file covers every weight declared below. */
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url('/assets/fonts/cinzel-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/assets/fonts/inter-latin.woff2') format('woff2');
+}
+
+/* Design tokens for the whole app. Component-scoped SCSS (board/cell) keeps its own small set of
+   Sass variables in `src/app/styles/_colors.scss` for the dynamically-positioned overlays and
+   keyframes — those hex values are kept equal to the ones below by hand (same pattern already
+   used for `_board.scss`'s $cell-size / board.component.ts's CELL_SIZE_PX coupling). This file is
+   plain CSS rather than Sass on purpose: Tailwind's own `@import`/`@theme` directives are CSS, and
+   routing them through the Sass compiler first only produces a deprecation warning for nothing. */
+@theme {
+  --font-display: 'Cinzel', serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --color-dungeon-950: #0d0b09;
+  --color-dungeon-900: #16130f;
+  --color-dungeon-800: #221d17;
+  --color-dungeon-700: #332b21;
+  --color-dungeon-600: #4a3d2e;
+  --color-parchment: #e8dcc4;
+  --color-parchment-dim: #b3a789;
+  --color-torch: #d4af37;
+  --color-torch-bright: #f4d35e;
+  --color-blood: #b91c1c;
+  --color-blood-bright: #ef4444;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-parchment);
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, var(--color-dungeon-700), transparent),
+    var(--color-dungeon-950);
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
